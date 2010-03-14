@@ -1,0 +1,150 @@
+<html>
+ <!--
+ 	@title  Auto-Reload
+ 	@author Jean-Lou Dupont
+ 	@desc   Background page for Auto-Reload
+  -->
+	<head>
+		<script>
+			var pageActionId = "auto_reload";
+			var tabParams = {};
+			var icons  = {"true": 1, "false": 0};
+			var titles = {"true": "Click to stop auto-reload", 
+						"false":"Click to start auto-reload"};
+
+			var _sendCmd=function(port) {
+
+		    	var tid    = port.tab.id;
+		    	var params = tabParams[tid]     || {};
+		    	var urls   = params["urls"]     || {};
+				var state  = urls[port.tab.url] || false;			
+				
+				var timeout=parseInt(localStorage["timeout"]);
+				var randomize=parseInt(localStorage["randomize"]);
+
+				var active_time_range=(localStorage["active_time_range"]==="true");
+				var begin_range=parseInt(localStorage["begin_range"]);
+				var end_range=parseInt(localStorage["end_range"]);
+				
+				var cmd={"type":"params", "state":state, "timeout":timeout, "randomize":randomize,
+						"begin_range":begin_range, "end_range":end_range,  
+						"active_time_range":active_time_range
+						};
+
+				console.log("active typeof:"+typeof active_time_range);
+				console.log("* Auto-Reload: tab<"+tid+"> updated, state:"+state+", active:"+active_time_range);
+
+				// tab might be reloading... tab will get its configuration
+				// when it finishes loading anyways.
+				try {
+					port.postMessage(cmd);
+				} catch(err) {}				
+			};
+
+			//Message processing: only "options" page sends a request
+			//
+			chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+				console.log("background: request: type: "+request.type);
+
+				//options change, notify all "content scripts"
+				if (request.type=="options_change") {
+					for (var tid in tabParams) {
+						var params=tabParams[tid] || {};
+						var port = params.port || false;
+						if (port != false)
+							console.log("bg: updating tab<"+tid+">");
+							_sendCmd(port);
+					}	
+				}
+			});
+
+			
+			chrome.extension.onConnect.addListener(function(port) {				
+				console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
+				
+		    	var tid=port.tab.id;
+		    	var params = tabParams[tid]     || {};
+		    	var urls   = params["urls"]     || {};
+				var state  = urls[port.tab.url] || false;			
+
+				// Cases:
+				// 1- new tab
+				// 2- page load / returning through 'back' button
+				urls[port.tab.url] = state;
+				params["urls"]     = urls;			
+				params["port"]     = port;
+				tabParams[tid]     = params;
+				
+				//we just received this 'connect' request so
+				//the port must be ok to use: assume safe.
+				_sendCmd(port);
+			    
+		        chrome.pageActions.enableForTab(pageActionId, {tabId: tid,
+																url: port.tab.url,
+																title: titles[String(state)],
+																iconId: icons[String(state)]});
+
+		        // not really needed at the moment.
+				port.onMessage.addListener(function(Msg){
+					console.log("bg: msg: "+Msg.type);
+				});
+				
+			});
+
+			// If the user navigates to a different location,
+			//  he/she probably don't want to keep re-loading the new target.
+			chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
+
+				var urlChanged=changeInfo["url"] || false;
+				if (urlChanged === false)
+					return;
+
+				//not sure if this can happen...
+				var params=tabParams[tabId] || null;
+				if (params===null)
+					return;
+
+				//something wrong here... shouldn't happen
+				//but hey, I am being paranoid ;-)
+				var port=params["port"] || null;
+				if (null===port)  
+					return;
+
+				_sendCmd(port);
+			});
+			
+			chrome.pageActions[pageActionId].addListener(function(paId, pageActionInfo) {
+				chrome.tabs.get(pageActionInfo.tabId, function(tab) {
+					// We need to know if we are the active window, because the tab may
+					// have moved to another window and we don't want to execute this
+					// action multiple times.
+					var url=tab.url || "";
+				    var params = tabParams[tab.id] || {};
+				    var urls   = params["urls"]    || {};
+				    var state  = urls[url]         || false;
+				    var port   = params["port"]    || null;
+				    
+				    var new_state=state ? false:true;
+				    urls[url] = new_state;
+				    
+				    var new_params={"port":port, "urls":urls};
+				    tabParams[tab.id] = new_params;
+
+				    //console.log( new_params );
+				    if (port) {
+						_sendCmd(port);
+						
+						console.log("* Auto-Reload: Sent Message - tabId<"+tab.id+">  state<"+new_state+">");
+						
+						chrome.pageActions.enableForTab(pageActionId, {tabId: tab.id,
+														url: port.tab.url,
+														title: titles[String(new_state)],
+														iconId: icons[String(new_state)]});
+				    } else {
+						console.log("! Auto-Reload: CANNOT send - tabId<"+tab.id+">  state<"+new_state+">");
+					}
+				});
+			});
+		</script>
+	</head>
+</html>

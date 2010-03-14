@@ -1,0 +1,28 @@
+{
+	"name": "Auto-Reload",
+	"version": "6.3",
+	"id" : "kdilcdffbkimjhmleljcofcmgdfiibng",
+	"description": "Time interval page auto-reloader", 
+	"icons": {"128":"reload24-off.png", "24":"reload-24-off.png"},
+	"background_page": "background.html",
+	"options_page": "options.html",
+	"content_scripts": [{
+      "js": [
+        "content.js"
+      ], 
+      "matches": [
+        "http://*/*", 
+        "https://*/*"
+      ]
+    }],
+    "page_actions": [{
+    	"id":    "auto_reload",
+    	"name":  "Auto-Reload",
+    	"icons": ["reload24-off.png", "reload24-on.png"]
+    }],
+	"permissions": [
+		"tabs",
+		"http://*/*",
+		"https://*/*"
+	]
+}

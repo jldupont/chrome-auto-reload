@@ -1,0 +1,236 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+ <!--
+ 	@title  Auto-Reload
+ 	@author Jean-Lou Dupont
+ 	@desc   Background page for Auto-Reload
+  -->
+	<head> 
+		<script type="text/javascript" src="yui-min3.0.0.js"></script>
+		
+		<!-- DEFAULTS -->
+		<script>
+			var defaults={};
+			defaults.timeout = 60;
+			defaults.timeoutmin = 3;
+			defaults.timeoutmax = 3600;
+			defaults.randomize=0;
+			defaults.randomizemin=0;
+			defaults.randomizemax=100;
+			defaults.active_time_range=false;
+			defaults.begin_range=7*60; //  7:00
+			defaults.end_range=20*60;  // 20:00
+			
+			var labels={
+					"timeout":   "Timeout (seconds):",
+					"randomize": "Randomize (%): ",
+					"begin":"Begin (hour:min): ",
+					"end":  "End (hour:min): ",		
+				};
+		</script> 
+		<style>
+			/* http://yui.yahooapis.com/3.0.0/build/cssfonts/fonts-min.css */
+			body{font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}
+			select,input,button,textarea{font:99% arial,helvetica,clean,sans-serif;}
+			table{font-size:inherit;font:100%;}
+			pre,code,kbd,samp,tt{font-family:monospace;*font-size:108%;line-height:100%;}
+		
+			#footer {
+				margin-top: 1em;
+				text-align: right;
+				font-weight: bold;
+			}
+			.section-header {
+			  background: #ebeff9;
+			  border-top: 1px solid #b5c7de;
+			  font-size: 95%;
+			  padding-bottom: 2px;
+			  padding-left: 5px;
+			  padding-top: 3px;
+			  width: 100%;
+			}
+			 
+			.section-header-title {
+			  font-weight: bold;
+			}	
+			.wbox-dev-mode {
+				-webkit-box-align: stretch;
+				-webkit-box-flex: 1;
+			}
+			.vbox-container {
+			  display: -webkit-box;
+			  -webkit-box-orient: vertical;
+			}
+			 
+			.wbox {
+			  display: -webkit-box;
+			  -webkit-box-align: stretch;
+			  -webkit-box-flex: 1;
+			}			
+		</style>
+
+ 	</head>
+	<body class=" yui-skin-sam">
+		<div class="content" > 
+			<h1><img src="reload24-off.png"/>  Auto-Reload</h1> 
+			<br/>
+
+			<div id="extensionTemplate">
+				<div id="container" class="vbox-container"> 
+					<div id="top" class="wbox" style="padding-right: 5px"> 
+
+						<div class="section-header"> 
+						  <table cellpadding="0" cellspacing="0" width="100%"> 
+							  <tr valign="center"> 
+							    <td> 
+							      <span class="section-header-title">Options</span> 
+							    </td> 
+							  </tr> 
+						  </table> 
+						</div> 
+					</div>
+					<br/>
+					<table>
+						<tr><td id="timeout_value">Timeout</td></tr>
+						<tr><td><div id="timeout_slider" class="horiz_slider"></div></td></tr>
+						<tr><td id="randomize_value">Randomize</td></tr>
+						<tr><td><div id="randomize_slider" class="horiz_slider"></div></td></tr>
+						
+						<tr><td></td><td><input type="checkbox" id="active_time_range_value" onclick="doActiveTimeRangeChange(this)"/><span>Active Time Range (check to activate)</span></td></tr>
+						<tr><td></td><td id="begin_value">Begin:</td><td><div id="begin_slider" class="horiz_slider"></div></td></tr>
+						<tr><td></td><td id="end_value">End:</td><td><div id="end_slider" class="horiz_slider"></div></td></tr>
+						
+						<tr>
+							<td>				   		
+						   		<input id="button_apply" type="button" value="Apply" onclick="doApply()" disabled="disabled" />				
+							</td>
+						</tr>
+					</table>
+						
+					</div>
+				
+			</div>
+
+ 		</div>	
+ 		<hr/>
+ 		<div id="footer">by: <a href="http://jldupont.blogspot.com/">Jean-Lou Dupont</a> - help me "beautify" this GUI!</div>
+ 		
+		<script>
+		var timeout=localStorage["timeout"] || defaults.timeout;
+		var randomize=localStorage["randomize"] || defaults.randomize;
+		
+		var active_time_range=(localStorage["active_time_range"]==="true") || defaults.active_time_range;	
+		var begin_range = parseInt(localStorage["begin_range"]) || defaults.begin_range;
+		var end_range   = parseInt(localStorage["end_range"])   || defaults.end_range;
+
+		var updateLabel = function(label, value) {
+			var labelid=label+"_value";
+			var e=document.getElementById(labelid);
+			e.innerHTML = labels[label] + value;
+		};
+
+		var updateRangeLabel = function(label, value) {
+			var labelid=label+"_value";
+			var e=document.getElementById(labelid);
+			e.innerHTML = labels[label] + Math.floor(value/60)+":"+Math.floor(value % 60);
+		};
+		
+		var ed=document.getElementById("active_time_range_value");
+		ed.checked=active_time_range;
+		
+		updateLabel("timeout", timeout);
+		updateLabel("randomize", randomize);
+		updateRangeLabel("begin", begin_range);
+		updateRangeLabel("end", end_range);
+		
+		
+		// Create a YUI instance and request the slider module and its dependencies
+		YUI({combine: true, timeout: 10000}).use("slider", function (Y) {
+		 
+			// instantiate the horizontal Slider, render it, and subscribe to its
+			// valueChange event via method chaining.  No need to store the created Slider
+			// in this case.
+			new Y.Slider({
+					max: defaults.timeoutmax,
+					min: defaults.timeoutmin,
+			        railSize: '400px',
+			        value: parseInt(timeout),
+			        thumbImage: 'thumb-classic-x.png'
+			    }).
+			    render('#timeout_slider').
+			    after('valueChange',function (e) {
+			        timeout=e.newVal;
+			        updateLabel("timeout", timeout);
+			        setApplyButton(false);
+			    });
+
+			new Y.Slider({
+				max: defaults.randomizemax,
+				min: defaults.randomizemin,
+		        railSize: '200px',
+		        value: parseInt(randomize),
+		        thumbImage: 'thumb-classic-x.png'
+		    }).
+		    render('#randomize_slider').
+		    after('valueChange',function (e) {
+		        randomize=e.newVal;
+		        updateLabel("randomize", randomize);
+		        setApplyButton(false);
+		    });
+
+			// BEGIN  time range
+			var begin_slider = new Y.Slider({
+				max: 24*60, min: 0,
+		        railSize: '200px',
+		        value: parseInt(begin_range),
+		        thumbImage: 'thumb-classic-x.png'
+		    }).
+		    render('#begin_slider').
+		    after('valueChange',function (e) {
+			    begin_range=e.newVal;
+			    updateRangeLabel("begin", begin_range);
+		    	setApplyButton(false);
+		    });
+
+			// END  time range
+			var end_slider = new Y.Slider({
+				max: 24*60, min: 0,
+		        railSize: '200px',
+		        value: parseInt(end_range),
+		        thumbImage: 'thumb-classic-x.png'
+		    }).
+		    render('#end_slider').
+		    after('valueChange',function (e) {
+			    end_range=e.newVal;
+			    updateRangeLabel("end", end_range);			    
+		    	setApplyButton(false);
+		    });		
+			
+		});
+
+		var doActiveTimeRangeChange=function(e) {
+			active_time_range=e.checked || false;
+			console.log("active: "+active_time_range+", type: "+typeof active_time_range );
+			setApplyButton(false);
+		}
+		
+		var setApplyButton=function(value) {
+	        var button_apply=document.getElementById("button_apply");
+	        button_apply.disabled=value;			
+		}
+		
+		var doApply=function() {
+			localStorage["timeout"] = timeout;
+			localStorage["randomize"] = randomize;
+			localStorage["active_time_range"]=active_time_range;
+			localStorage["begin_range"]=begin_range;
+			localStorage["end_range"]=end_range;
+
+			//signal the background page that options have changed.
+			chrome.extension.sendRequest({"type":"options_change"});
+			
+			setApplyButton(true);
+		};
+		
+   		</script>
+	</body>
+</html>
