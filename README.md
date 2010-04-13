@@ -3,6 +3,11 @@ Google Chrome "Auto-Reload" extension
 Releases
 ========
 
+6.4
+---
+
+* Corrected small packaging bug which surfaces with latest Chrome Dev release
+
 6.3
 ---
 
