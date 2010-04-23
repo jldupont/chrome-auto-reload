@@ -5,7 +5,7 @@
  	@desc   Background page for Auto-Reload
   -->
 	<head> 
-		<script type="text/javascript" src="yui-min3.0.0.js"></script>
+		<!--  <script type="text/javascript" src="yui-min3.0.0.js"></script> -->
 		
 		<!-- DEFAULTS -->
 		<script>
@@ -70,6 +70,7 @@
 
  	</head>
 	<body class=" yui-skin-sam">
+	
 		<div class="content" > 
 			<h1><img src="reload24-off.png"/>  Auto-Reload</h1> 
 			<br/>
@@ -90,14 +91,23 @@
 					</div>
 					<br/>
 					<table>
-						<tr><td id="timeout_value">Timeout</td></tr>
+						<tr><td >Timeout (seconds): </td>
+						<td><input id="timeout_value" type='text' maxlength=4 size=4 onchange="timeoutValueChangedHandler(this)" /></td></tr>
 						<tr><td><div id="timeout_slider" class="horiz_slider"></div></td></tr>
-						<tr><td id="randomize_value">Randomize</td></tr>
+						
+						<tr><td >Randomize (%): </td>
+						<td><input id="randomize_value" type='text' maxlength=4 size=4 onchange="randomizeValueChangedHandler(this)" /></td></tr>
 						<tr><td><div id="randomize_slider" class="horiz_slider"></div></td></tr>
 						
 						<tr><td></td><td><input type="checkbox" id="active_time_range_value" onclick="doActiveTimeRangeChange(this)"/><span>Active Time Range (check to activate)</span></td></tr>
-						<tr><td></td><td id="begin_value">Begin:</td><td><div id="begin_slider" class="horiz_slider"></div></td></tr>
-						<tr><td></td><td id="end_value">End:</td><td><div id="end_slider" class="horiz_slider"></div></td></tr>
+						
+						<tr><td></td><td>Begin (hour:min): </td>
+						<td><div id="begin_value">begin</div></td>
+						<td><div id="begin_slider" class="horiz_slider"></div></td></tr>
+						
+						<tr><td></td><td>End (hour:min): </td>
+						<td><div id="end_value">end</div></td>
+						<td><div id="end_slider" class="horiz_slider"></div></td></tr>
 						
 						<tr>
 							<td>				   		
@@ -115,6 +125,8 @@
  		<div id="footer">by: <a href="http://jldupont.blogspot.com/">Jean-Lou Dupont</a> - help me "beautify" this GUI!</div>
  		
 		<script>
+
+		// grab current parameters from LocalStorage
 		var timeout=localStorage["timeout"] || defaults.timeout;
 		var randomize=localStorage["randomize"] || defaults.randomize;
 		
@@ -122,18 +134,83 @@
 		var begin_range = parseInt(localStorage["begin_range"]) || defaults.begin_range;
 		var end_range   = parseInt(localStorage["end_range"])   || defaults.end_range;
 
+		
+		var buildSlider = function(id, min, max, value, handler, label) {
+			var e=document.getElementById(id);
+			e.innerHTML = "<input id='slider_"+id+"' type='range' step=1 min='"+min+"' max='"+max+"' value='"+value+"' onchange='"+handler+"(this, \""+label+"\")' >";
+		}
+
+		var sliderHandler=function(e, label) {
+	        updateLabel(label, e.value);
+	        setApplyButton(false);						
+		}
+
+		
+		var timeoutValueChangedHandler = function(e) {
+			value=e.value;
+			if (value > defaults.timeoutmax) {
+				value=defaults.timeoutmax;
+			}
+			if (value < defaults.timeoutmin) {
+				value=defaults.timeoutmin;
+			}
+			e.value=value;
+			
+			slider=document.getElementById("slider_timeout_slider");
+			slider.value=e.value;
+	        setApplyButton(false);
+		}
+		
+		var randomizeValueChangedHandler = function(e) {
+			value=e.value;
+			if (value > defaults.randomizemax) {
+				value=defaults.randomizemax;
+			}
+			if (value < defaults.randomizemin) {
+				value=defaults.randomizemin;
+			}
+			e.value=value;
+			
+			slider=document.getElementById("slider_randomize_slider");
+			slider.value=e.value;
+	        setApplyButton(false);
+		}
+
+		var getSliderValue = function(which) {
+			var e=document.getElementById("slider_"+which+"_slider");
+			return e.value;
+		}
+		
+		
+		var rangeSliderHandler = function(e, label) {
+			value=e.value;
+			lid=document.getElementById(label+"_value");
+			lid.innerHTML = Math.floor(value/60)+":"+Math.floor(value % 60);
+		}
+		
 		var updateLabel = function(label, value) {
 			var labelid=label+"_value";
 			var e=document.getElementById(labelid);
-			e.innerHTML = labels[label] + value;
+			e.value = value;
 		};
 
 		var updateRangeLabel = function(label, value) {
 			var labelid=label+"_value";
-			var e=document.getElementById(labelid);
-			e.innerHTML = labels[label] + Math.floor(value/60)+":"+Math.floor(value % 60);
+			lid=document.getElementById(label+"_value");
+			lid.innerHTML = Math.floor(value/60)+":"+Math.floor(value % 60);
 		};
 		
+		buildSlider("timeout_slider",   defaults.timeoutmin,   defaults.timeoutmax,   parseInt(timeout),   "sliderHandler", "timeout");
+		buildSlider("randomize_slider", defaults.randomizemin, defaults.randomizemax, parseInt(randomize), "sliderHandler", "randomize" );
+
+		buildSlider("begin_slider",     0,   24*60,   parseInt(begin_range), "rangeSliderHandler", "begin");
+		buildSlider("end_slider",       0,   24*60,   parseInt(end_range),   "rangeSliderHandler", "end");
+
+		var getActiveTimeRange=function() {
+			var ed=document.getElementById("active_time_range_value");
+			return ed.checked;			
+		}
+
 		var ed=document.getElementById("active_time_range_value");
 		ed.checked=active_time_range;
 		
@@ -141,75 +218,10 @@
 		updateLabel("randomize", randomize);
 		updateRangeLabel("begin", begin_range);
 		updateRangeLabel("end", end_range);
-		
-		
-		// Create a YUI instance and request the slider module and its dependencies
-		YUI({combine: true, timeout: 10000}).use("slider", function (Y) {
-		 
-			// instantiate the horizontal Slider, render it, and subscribe to its
-			// valueChange event via method chaining.  No need to store the created Slider
-			// in this case.
-			new Y.Slider({
-					max: defaults.timeoutmax,
-					min: defaults.timeoutmin,
-			        railSize: '400px',
-			        value: parseInt(timeout),
-			        thumbImage: 'thumb-classic-x.png'
-			    }).
-			    render('#timeout_slider').
-			    after('valueChange',function (e) {
-			        timeout=e.newVal;
-			        updateLabel("timeout", timeout);
-			        setApplyButton(false);
-			    });
-
-			new Y.Slider({
-				max: defaults.randomizemax,
-				min: defaults.randomizemin,
-		        railSize: '200px',
-		        value: parseInt(randomize),
-		        thumbImage: 'thumb-classic-x.png'
-		    }).
-		    render('#randomize_slider').
-		    after('valueChange',function (e) {
-		        randomize=e.newVal;
-		        updateLabel("randomize", randomize);
-		        setApplyButton(false);
-		    });
-
-			// BEGIN  time range
-			var begin_slider = new Y.Slider({
-				max: 24*60, min: 0,
-		        railSize: '200px',
-		        value: parseInt(begin_range),
-		        thumbImage: 'thumb-classic-x.png'
-		    }).
-		    render('#begin_slider').
-		    after('valueChange',function (e) {
-			    begin_range=e.newVal;
-			    updateRangeLabel("begin", begin_range);
-		    	setApplyButton(false);
-		    });
-
-			// END  time range
-			var end_slider = new Y.Slider({
-				max: 24*60, min: 0,
-		        railSize: '200px',
-		        value: parseInt(end_range),
-		        thumbImage: 'thumb-classic-x.png'
-		    }).
-		    render('#end_slider').
-		    after('valueChange',function (e) {
-			    end_range=e.newVal;
-			    updateRangeLabel("end", end_range);			    
-		    	setApplyButton(false);
-		    });		
-			
-		});
-
+				
 		var doActiveTimeRangeChange=function(e) {
 			active_time_range=e.checked || false;
-			console.log("active: "+active_time_range+", type: "+typeof active_time_range );
+			//console.log("active: "+active_time_range+", type: "+typeof active_time_range );
 			setApplyButton(false);
 		}
 		
@@ -219,11 +231,13 @@
 		}
 		
 		var doApply=function() {
-			localStorage["timeout"] = timeout;
-			localStorage["randomize"] = randomize;
-			localStorage["active_time_range"]=active_time_range;
-			localStorage["begin_range"]=begin_range;
-			localStorage["end_range"]=end_range;
+			localStorage["timeout"]   = getSliderValue("timeout");
+			localStorage["randomize"] = getSliderValue("randomize");
+					
+			localStorage["active_time_range"]=getActiveTimeRange();
+			
+			localStorage["begin_range"] = getSliderValue("begin");
+			localStorage["end_range"]   = getSliderValue("end");
 
 			//signal the background page that options have changed.
 			chrome.extension.sendRequest({"type":"options_change"});

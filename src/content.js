@@ -39,7 +39,9 @@ function reloader(cmd) {
 	active_time_range = cmd.active_time_range || default_active_time_range;
 	begin_range = cmd.begin_range || default_begin_range;
 	end_range   = cmd.end_range   || default_end_range;
+	stick = cmd.stick || false;
 	
+	console.log("Sticky: "+stick);
 	console.log("Active Time Range: "+active_time_range);
 	
 	timeout = timeout * 1000;
@@ -55,7 +57,7 @@ function reloader(cmd) {
 	if (state && timer_id) 
 		return;
 	
-	if (state) {
+	if (state===true || state=="true" || stick===true || stick==="true") {
 		timer_id=setTimeout(function() {
 			
 			// is there a "disabled_time_range" active?

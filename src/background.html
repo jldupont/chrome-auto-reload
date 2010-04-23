@@ -8,16 +8,20 @@
 		<script>
 			var pageActionId = "auto_reload";
 			var tabParams = {};
+			var iconsPath = {0:"reload24-off.png", 1:"reload24-on.png", 2:"reload24-stick.png"};
 			var icons  = {"true": 1, "false": 0};
-			var titles = {"true": "Click to stop auto-reload", 
-						"false":"Click to start auto-reload"};
+			var titles = {  0: "Click to start auto-reload",
+							1: "Click to engage sticky auto-reload",
+							2: "Click to stop auto-reload"};
 
 			var _sendCmd=function(port) {
 
 		    	var tid    = port.tab.id;
 		    	var params = tabParams[tid]     || {};
 		    	var urls   = params["urls"]     || {};
-				var state  = urls[port.tab.url] || false;			
+				var state  = urls[port.tab.url] || false;
+				var stick  = localStorage[port.tab.url] || false;
+						
 				
 				var timeout=parseInt(localStorage["timeout"]);
 				var randomize=parseInt(localStorage["randomize"]);
@@ -29,6 +33,7 @@
 				var cmd={"type":"params", "state":state, "timeout":timeout, "randomize":randomize,
 						"begin_range":begin_range, "end_range":end_range,  
 						"active_time_range":active_time_range
+						,"stick": stick
 						};
 
 				console.log("active typeof:"+typeof active_time_range);
@@ -58,6 +63,23 @@
 				}
 			});
 
+			var resolveIcon = function(state, stick) {
+				console.log("resolveIcon: state: "+state+" stick: "+stick);
+
+				if (stick===true || stick=="true")
+					id=2;
+				else
+					id = icons[String(state)];
+				return id;
+			}
+
+			var setIcon = function(tid, state, stick) {
+				var id=resolveIcon(state, stick);
+				var title=titles[id];
+				var iconPath=iconsPath[id];
+				chrome.pageAction.setIcon({"tabId": tid, "path":iconPath});
+				chrome.pageAction.setTitle({"tabId": tid, "title": title});						
+			}
 			
 			chrome.extension.onConnect.addListener(function(port) {				
 				console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
@@ -65,7 +87,8 @@
 		    	var tid=port.tab.id;
 		    	var params = tabParams[tid]     || {};
 		    	var urls   = params["urls"]     || {};
-				var state  = urls[port.tab.url] || false;			
+				var state  = urls[port.tab.url] || false;
+				var stick  = localStorage[port.tab.url] || false;		
 
 				// Cases:
 				// 1- new tab
@@ -78,11 +101,9 @@
 				//we just received this 'connect' request so
 				//the port must be ok to use: assume safe.
 				_sendCmd(port);
-			    
-		        chrome.pageActions.enableForTab(pageActionId, {tabId: tid,
-																url: port.tab.url,
-																title: titles[String(state)],
-																iconId: icons[String(state)]});
+
+				chrome.pageAction.show(tid);
+				setIcon(tid, state, stick);
 
 		        // not really needed at the moment.
 				port.onMessage.addListener(function(Msg){
@@ -112,39 +133,51 @@
 
 				_sendCmd(port);
 			});
-			
-			chrome.pageActions[pageActionId].addListener(function(paId, pageActionInfo) {
-				chrome.tabs.get(pageActionInfo.tabId, function(tab) {
-					// We need to know if we are the active window, because the tab may
-					// have moved to another window and we don't want to execute this
-					// action multiple times.
-					var url=tab.url || "";
-				    var params = tabParams[tab.id] || {};
-				    var urls   = params["urls"]    || {};
-				    var state  = urls[url]         || false;
-				    var port   = params["port"]    || null;
-				    
-				    var new_state=state ? false:true;
-				    urls[url] = new_state;
-				    
-				    var new_params={"port":port, "urls":urls};
-				    tabParams[tab.id] = new_params;
 
-				    //console.log( new_params );
-				    if (port) {
-						_sendCmd(port);
-						
-						console.log("* Auto-Reload: Sent Message - tabId<"+tab.id+">  state<"+new_state+">");
-						
-						chrome.pageActions.enableForTab(pageActionId, {tabId: tab.id,
-														url: port.tab.url,
-														title: titles[String(new_state)],
-														iconId: icons[String(new_state)]});
-				    } else {
-						console.log("! Auto-Reload: CANNOT send - tabId<"+tab.id+">  state<"+new_state+">");
+			var computeNextState=function(cstate, cstick) {
+				
+				if (cstick===true || cstick=="true") {
+					ns={"state": false, "stick": false};
+				} else {
+					if (cstate===true || cstick=="true") {
+						ns={"state": true, "stick": true};
+					} else {
+						ns={"state": true, "stick": false};
 					}
-				});
+				}
+				return ns; 
+			}
+			
+			chrome.pageAction.onClicked.addListener(function(tab) {
+				// We need to know if we are the active window, because the tab may
+				// have moved to another window and we don't want to execute this
+				// action multiple times.
+				var url=tab.url || "";
+			    var params = tabParams[tab.id] || {};
+			    var urls   = params["urls"]    || {};
+			    var state  = urls[url]         || false;
+			    var port   = params["port"]    || null;
+			    var stick  = localStorage[url] || false;
+			       
+			    var new_state=computeNextState(state, stick);
+			    
+			    state = urls[url] = new_state["state"];
+			    stick = localStorage[url] = new_state["stick"];
+			    
+			    var new_params={"port":port, "urls":urls};
+			    tabParams[tab.id] = new_params;
+
+			    //console.log( new_params );
+			    if (port) {
+					_sendCmd(port);
+					
+					console.log("* Auto-Reload: Sent Message - tabId<"+tab.id+">  state<"+new_state+">");
+					setIcon(tab.id, state, stick);
+			    } else {
+					console.log("! Auto-Reload: CANNOT send - tabId<"+tab.id+">  state<"+new_state+">");
+				}
 			});
+
 		</script>
 	</head>
 </html>

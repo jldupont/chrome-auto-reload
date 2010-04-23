@@ -1,6 +1,6 @@
 {
 	"name": "Auto-Reload",
-	"version": "6.4",
+	"version": "6.5",
 	"id" : "kdilcdffbkimjhmleljcofcmgdfiibng",
 	"description": "Time interval page auto-reloader", 
 	"icons": {"128":"reload24-off.png", "24":"reload24-off.png"},
@@ -18,7 +18,7 @@
     "page_actions": [{
     	"id":    "auto_reload",
     	"name":  "Auto-Reload",
-    	"icons": ["reload24-off.png", "reload24-on.png"]
+    	"icons": ["reload24-off.png", "reload24-on.png", "reload24-stick.png"]
     }],
 	"permissions": [
 		"tabs",
