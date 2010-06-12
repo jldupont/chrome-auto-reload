@@ -24,8 +24,8 @@ function checkTimeRange() {
 	var cm= cdate.getMinutes();
 	var ct=(ch*60)+cm;
 
-	console.log("current: "+ ch + ":"+ cm + "("+ct+")");
-	console.log("begin range: "+begin_range+" , end_range: "+end_range);
+	//console.log("current: "+ ch + ":"+ cm + "("+ct+")");
+	//console.log("begin range: "+begin_range+" , end_range: "+end_range);
 	
 	return (ct >= begin_range) && (ct <= end_range);
 }
@@ -41,16 +41,16 @@ function reloader(cmd) {
 	end_range   = cmd.end_range   || default_end_range;
 	stick = cmd.stick || false;
 	
-	console.log("Sticky: "+stick);
-	console.log("Active Time Range: "+active_time_range);
+	//console.log("Sticky: "+stick);
+	//console.log("Active Time Range: "+active_time_range);
 	
 	timeout = timeout * 1000;
-	console.log("Base timeout: " + timeout + ", randomize (%): "+ randomize);
+	//console.log("Base timeout: " + timeout + ", randomize (%): "+ randomize);
 	
 	timeout = timeout + timeout * (randomize/100 * Math.random());
-	console.log("Randomize timeout: "+timeout);
+	//console.log("Randomize timeout: "+timeout);
 	
-	console.log("begin_range: "+begin_range+", end_range: "+end_range);
+	//console.log("begin_range: "+begin_range+", end_range: "+end_range);
 		
 	
 	//we already are waiting to be reloaded
@@ -73,13 +73,13 @@ function reloader(cmd) {
 			
 		}, timeout );//setTimeout
 		
-		console.log(" > auto-reload: scheduled in "+timeout+" ms.");
+		//console.log(" > auto-reload: scheduled in "+timeout+" ms.");
 	} else {
 		if (timer_id) {
 			clearInterval(timer_id);
 			timer_id=undefined;
 		}
-		console.log(" > auto-reload: none scheduled");
+		//console.log(" > auto-reload: none scheduled");
 	}
 }//
 

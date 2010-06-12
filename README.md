@@ -3,6 +3,11 @@ Google Chrome "Auto-Reload" extension
 Releases
 ========
 
+6.6
+---
+
+* removed all debugging information - no more memory "leak"
+
 6.5
 ---
 
