@@ -178,6 +178,59 @@
 				}
 			});
 
+			// =============================================================================================
+			// ============================================================================================= CONTEXT MENUS
+			// =============================================================================================
+			
+			var randomizeMenuItems={};
+
+			function _clearRandomizeCheckmarks() {
+				for (mid in randomizeMenuItems) {
+					chrome.contextMenus.update(parseInt(mid), {checked: false});
+				}
+			}
+			
+			function doRandomizeMenuItem(info, tab) {
+				
+				_clearRandomizeCheckmarks();
+				chrome.contextMenus.update(info.menuItemId, {checked: true});
+				
+				var id=info.menuItemId;
+				
+				console.log("MenuItemId: "+id+", random: "+randomizeMenuItems[id].random);				
+			}
+			
+			var rmid;
+			var tmid;
+			var randomizeMenu = {type: "normal", title: "Randomize", contexts:["page"]};    
+			//var timeoutMenu   = {type: "normal", title: "Timeout",   contexts:"page"};   
+			//var allOffMenu    = {type: "normal", title: "All Off",   contexts:"page", onclick: doAllOff   };
+
+			// create the top level menus
+			rmid=chrome.contextMenus.create(randomizeMenu);
+			//tmid=chrome.contextMenus.create(timeoutMenu);
+			//chrome.contextMenus.create(allOffMenu);
+
+			// options under 'randomize' and 'timeout'
+			var randomizeMenuList=[
+				 {type:"checkbox", title:"Off", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
+				,{type:"checkbox", title:"10%", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}					
+				,{type:"checkbox", title:"25%", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
+				,{type:"checkbox", title:"50%", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
+			];
+			var randomList=[0, 10, 25, 50];
+			
+			var id, mobj;
+			for (item in randomizeMenuList) {
+				//console.log("menu: "+item);
+				mobj=randomizeMenuList[item]
+				id=chrome.contextMenus.create(mobj);
+				
+				mobj.random=randomList[item];
+				randomizeMenuItems[id]=mobj
+				console.log("=> created menu item: "+id);
+			}
+			
 		</script>
 	</head>
 </html>
