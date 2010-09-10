@@ -85,38 +85,7 @@ function reloader(cmd) {
 	//console.log("begin_range: "+begin_range+", end_range: "+end_range);
 		
 	if (!timer_id)
-		doSetTimeout();
-	
-	/*
-	//we already are waiting to be reloaded
-	if (state && timer_id) 
-		return;
-	
-	if (state===true || state=="true" || stick===true || stick==="true") {
-		timer_id=setTimeout(function() {
-			
-			// is there a "disabled_time_range" active?
-			if (active_time_range != false) {
-				if (checkTimeRange())
-					window.location.reload(true);
-			} else {
-				window.location.reload(true);	
-			}
-			
-			// not needed currently.
-			// port.postMessage({"type":"tab_reloaded", "port": port});
-			
-		}, timeout );//setTimeout
-		
-		//console.log(" > auto-reload: scheduled in "+timeout+" ms.");
-	} else {
-		if (timer_id) {
-			clearInterval(timer_id);
-			timer_id=undefined;
-		}
-		//console.log(" > auto-reload: none scheduled");
-	}
-	*/
+		doSetTimeout();	
 }//
 
 port=chrome.extension.connect();

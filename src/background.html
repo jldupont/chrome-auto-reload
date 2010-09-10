@@ -22,7 +22,6 @@
 				var state  = urls[port.tab.url] || false;
 				var stick  = localStorage[port.tab.url] || false;
 						
-				
 				var timeout=parseInt(localStorage["timeout"]);
 				var randomize=parseInt(localStorage["randomize"]);
 
@@ -46,24 +45,7 @@
 				} catch(err) {}				
 			};
 
-			//Message processing: only "options" page sends a request
-			//
-			chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-				//console.log("background: request: type: "+request.type);
-
-				//options change, notify all "content scripts"
-				if (request.type=="options_change") {
-					for (var tid in tabParams) {
-						var params=tabParams[tid] || {};
-						var port = params.port || false;
-						if (port != false)
-							//console.log("bg: updating tab<"+tid+">");
-							_sendCmd(port);
-					}	
-				}
-			});
-
-			var resolveIcon = function(state, stick) {
+			function resolveIcon(state, stick) {
 				//console.log("resolveIcon: state: "+state+" stick: "+stick);
 
 				if (stick===true || stick=="true")
@@ -73,21 +55,41 @@
 				return id;
 			}
 
-			var setIcon = function(tid, state, stick) {
+			function setIcon(tid, state, stick) {
 				var id=resolveIcon(state, stick);
 				var title=titles[id];
 				var iconPath=iconsPath[id];
 				chrome.pageAction.setIcon({"tabId": tid, "path":iconPath});
 				chrome.pageAction.setTitle({"tabId": tid, "title": title});						
 			}
-			
+
+			function computeNextState(cstate, cstick) {
+				
+				if (cstick===true || cstick=="true") {
+					ns={"state": false, "stick": false};
+				} else {
+					if (cstate===true || cstick=="true") {
+						ns={"state": true, "stick": true};
+					} else {
+						ns={"state": true, "stick": false};
+					}
+				}
+				return ns; 
+			}
+
+			// =============================================================================================
+			// ============================================================================================= HANDLERS
+			// =============================================================================================
+
+			// A 'tab' connects to the background page
+			//
 			chrome.extension.onConnect.addListener(function(port) {				
 				//console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
 				
-		    	var tid=port.tab.id;
-		    	var params = tabParams[tid]     || {};
-		    	var urls   = params["urls"]     || {};
-				var state  = urls[port.tab.url] || false;
+		    	var tid    = port.tab.id;
+		    	var params = tabParams[tid]             || {};
+		    	var urls   = params["urls"]             || {};
+				var state  = urls[port.tab.url]         || false;
 				var stick  = localStorage[port.tab.url] || false;		
 
 				// Cases:
@@ -104,14 +106,11 @@
 
 				chrome.pageAction.show(tid);
 				setIcon(tid, state, stick);
-
-		        // not really needed at the moment.
-				port.onMessage.addListener(function(Msg){
-					//console.log("bg: msg: "+Msg.type);
-				});
-				
 			});
 
+
+			// Tab changes URL
+			//
 			// If the user navigates to a different location,
 			//  he/she probably don't want to keep re-loading the new target.
 			chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
@@ -134,20 +133,9 @@
 				_sendCmd(port);
 			});
 
-			var computeNextState=function(cstate, cstick) {
-				
-				if (cstick===true || cstick=="true") {
-					ns={"state": false, "stick": false};
-				} else {
-					if (cstate===true || cstick=="true") {
-						ns={"state": true, "stick": true};
-					} else {
-						ns={"state": true, "stick": false};
-					}
-				}
-				return ns; 
-			}
-			
+		
+			// Page action is clicked
+			//			
 			chrome.pageAction.onClicked.addListener(function(tab) {
 				// We need to know if we are the active window, because the tab may
 				// have moved to another window and we don't want to execute this
@@ -178,14 +166,38 @@
 				}
 			});
 
+			//Message processing: only "options" page sends a request
+			//
+			chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+				//console.log("background: request: type: "+request.type);
+
+				//options change, notify all "content scripts"
+				if (request.type=="options_change") {
+					for (var tid in tabParams) {
+						var params=tabParams[tid] || {};
+						var port = params.port || false;
+						if (port != false)
+							//console.log("bg: updating tab<"+tid+">");
+							_sendCmd(port);
+					}	
+				}
+			});
+
 			// =============================================================================================
 			// ============================================================================================= CONTEXT MENUS
 			// =============================================================================================
 			
 			var randomizeMenuItems={};
+			var timeoutMenuItems={};
 
 			function _clearRandomizeCheckmarks() {
-				for (mid in randomizeMenuItems) {
+				for (var mid in randomizeMenuItems) {
+					chrome.contextMenus.update(parseInt(mid), {checked: false});
+				}
+			}
+			
+			function _clearTimeoutCheckmarks() {
+				for (var mid in timeoutMenuItems) {
 					chrome.contextMenus.update(parseInt(mid), {checked: false});
 				}
 			}
@@ -221,7 +233,7 @@
 			var randomList=[0, 10, 25, 50];
 			
 			var id, mobj;
-			for (item in randomizeMenuList) {
+			for (var item in randomizeMenuList) {
 				//console.log("menu: "+item);
 				mobj=randomizeMenuList[item]
 				id=chrome.contextMenus.create(mobj);
