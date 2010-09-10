@@ -32,9 +32,8 @@ function checkTimeRange() {
 }
 
 function maybeReload() {
-	//we already are waiting to be reloaded
-	if (state && timer_id) 
-		return;
+	
+	//console.log("state: "+state+", stick: "+stick);
 	
 	if (state===true || state=="true" || stick===true || stick==="true") {
 		// is there a "disabled_time_range" active?
@@ -58,6 +57,7 @@ function maybeReload() {
 }
 
 function doSetTimeout() {
+	//console.log("Setting timer!");
 	timer_id=setTimeout(maybeReload, timeout);
 }
 
@@ -84,7 +84,7 @@ function reloader(cmd) {
 	
 	//console.log("begin_range: "+begin_range+", end_range: "+end_range);
 		
-	if (timer_id)
+	if (!timer_id)
 		doSetTimeout();
 	
 	/*
