@@ -16,14 +16,21 @@
 
 			var _sendCmd=function(port) {
 
-		    	var tid    = port.tab.id;
-		    	var params = tabParams[tid]     || {};
-		    	var urls   = params["urls"]     || {};
-				var state  = urls[port.tab.url] || false;
-				var stick  = localStorage[port.tab.url] || false;
-						
-				var timeout=parseInt(localStorage["timeout"]);
-				var randomize=parseInt(localStorage["randomize"]);
+				var url = port.tab.url;
+		    	var tid       = port.tab.id;
+		    	var params    = tabParams[tid]     || {};
+		    	var urls      = params["urls"]     || {};
+				var state     = urls[port.tab.url] || false;
+				var stick     = localStorage["stick."+url] || false;
+				
+				// retrieve per-URL specific parameters
+				var url_timeout   = localStorage["timeout."+url]   || null;
+				var url_randomize = localStorage["randomize."+url] || null;
+
+				console.log("_sendCmd: url_randomize: "+url_randomize+", url_timeout: "+url_timeout);
+				
+				var timeout   = url_timeout   || parseInt(localStorage["timeout"]);
+				var randomize = url_randomize || parseInt(localStorage["randomize"]);
 
 				var active_time_range=(localStorage["active_time_range"]==="true");
 				var begin_range=parseInt(localStorage["begin_range"]);
@@ -35,6 +42,8 @@
 						,"stick": stick
 						};
 
+				console.log("_sendCmd: randomize: "+randomize+", timeout: "+timeout);
+				
 				//console.log("active typeof:"+typeof active_time_range);
 				//console.log("* Auto-Reload: tab<"+tid+"> updated, state:"+state+", active:"+active_time_range);
 
@@ -90,7 +99,7 @@
 		    	var params = tabParams[tid]             || {};
 		    	var urls   = params["urls"]             || {};
 				var state  = urls[port.tab.url]         || false;
-				var stick  = localStorage[port.tab.url] || false;		
+				var stick = localStorage["stick."+port.tab.url] || false;		
 
 				// Cases:
 				// 1- new tab
@@ -145,12 +154,13 @@
 			    var urls   = params["urls"]    || {};
 			    var state  = urls[url]         || false;
 			    var port   = params["port"]    || null;
-			    var stick  = localStorage[url] || false;
+			    var stick  = localStorage["stick."+url] || false;
 			       
 			    var new_state=computeNextState(state, stick);
 			    
 			    state = urls[url] = new_state["state"];
-			    stick = localStorage[url] = new_state["stick"];
+
+			    localStorage["stick."+url]=new_state["stick"];
 			    
 			    var new_params={"port":port, "urls":urls};
 			    tabParams[tab.id] = new_params;
@@ -209,40 +219,79 @@
 				
 				var id=info.menuItemId;
 				
-				console.log("MenuItemId: "+id+", random: "+randomizeMenuItems[id].random);				
+				console.log("MenuItemId: "+id+", random: "+randomizeMenuItems[id].random+", url:"+tab.url);
+				
+				localStorage["randomize."+tab.url]=randomizeMenuItems[id].random;
+			}
+
+			function doTimeoutMenuItem(info, tab) {
+				_clearTimeoutCheckmarks();
+				chrome.contextMenus.update(info.menuItemId, {checked: true});
+				
+				var id=info.menuItemId;
+				
+				console.log("MenuItemId: "+id+", timeout: "+timeoutMenuItems[id].timeout+", url:"+tab.url);
+				
+				localStorage["timeout."+tab.url]=timeoutMenuItems[id].timeout;				
 			}
 			
 			var rmid;
 			var tmid;
 			var randomizeMenu = {type: "normal", title: "Randomize", contexts:["page"]};    
-			//var timeoutMenu   = {type: "normal", title: "Timeout",   contexts:"page"};   
-			//var allOffMenu    = {type: "normal", title: "All Off",   contexts:"page", onclick: doAllOff   };
+			var timeoutMenu   = {type: "normal", title: "Timeout",   contexts:["page"]};   
+
 
 			// create the top level menus
 			rmid=chrome.contextMenus.create(randomizeMenu);
-			//tmid=chrome.contextMenus.create(timeoutMenu);
+			tmid=chrome.contextMenus.create(timeoutMenu);
 			//chrome.contextMenus.create(allOffMenu);
 
 			// options under 'randomize' and 'timeout'
 			var randomizeMenuList=[
-				 {type:"checkbox", title:"Off", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
-				,{type:"checkbox", title:"10%", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}					
-				,{type:"checkbox", title:"25%", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
-				,{type:"checkbox", title:"50%", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
+				 {type:"checkbox", title:"Default", contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
+				,{type:"checkbox", title:"10%",     contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}					
+				,{type:"checkbox", title:"25%",     contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
+				,{type:"checkbox", title:"50%",     contexts:["page"], parentId: rmid, onclick: doRandomizeMenuItem}
 			];
-			var randomList=[0, 10, 25, 50];
+			var randomList=[null, 10, 25, 50];
 			
 			var id, mobj;
 			for (var item in randomizeMenuList) {
 				//console.log("menu: "+item);
-				mobj=randomizeMenuList[item]
+				mobj=randomizeMenuList[item];
 				id=chrome.contextMenus.create(mobj);
 				
 				mobj.random=randomList[item];
 				randomizeMenuItems[id]=mobj
-				console.log("=> created menu item: "+id);
+				//console.log("=> created menu item: "+id);
 			}
-			
+
+			// options under 'randomize' and 'timeout'
+			var timeoutMenuList=[
+				 {type:"checkbox", title:"Default", contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}
+				,{type:"checkbox", title:"3sec",    contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}					
+				,{type:"checkbox", title:"10sec",   contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}
+				,{type:"checkbox", title:"30sec",   contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}
+				,{type:"checkbox", title:"60sec",   contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}
+				,{type:"checkbox", title:"120sec",  contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}
+				,{type:"checkbox", title:"300sec",  contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}
+				,{type:"checkbox", title:"900sec",  contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}								
+				,{type:"checkbox", title:"1800sec", contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}
+				,{type:"checkbox", title:"3600sec", contexts:["page"], parentId: tmid, onclick: doTimeoutMenuItem}
+			];
+
+			var timeoutList=[null, 3, 10, 30, 60, 120, 300, 900, 1800, 3600];
+
+			for (var item in timeoutMenuList) {
+				//console.log("menu: "+item);
+				mobj=timeoutMenuList[item];
+				id=chrome.contextMenus.create(mobj);
+				
+				mobj.timeout=timeoutList[item];
+				timeoutMenuItems[id]=mobj;
+				//console.log("=> created menu item: "+id);
+			}
+				
 		</script>
 	</head>
 </html>

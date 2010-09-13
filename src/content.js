@@ -71,13 +71,15 @@ function reloader(cmd) {
 	end_range   = cmd.end_range   || default_end_range;
 	stick =       cmd.stick       || false;
 	
+	console.log("Base timeout: " + timeout + ", randomize (%): "+ randomize);
+	
 	active_time_range = cmd.active_time_range || default_active_time_range;
 	
 	//console.log("Sticky: "+stick);
 	//console.log("Active Time Range: "+active_time_range);
 	
 	timeout = timeout * 1000;
-	//console.log("Base timeout: " + timeout + ", randomize (%): "+ randomize);
+	
 	
 	timeout = timeout + timeout * (randomize/100 * Math.random());
 	//console.log("Randomize timeout: "+timeout);
