@@ -7,6 +7,15 @@
 	<head>
 		<script src="menus.js"></script>
 		<script>
+
+			/*  Useful for binding callbacks to a scope
+			 */
+			function bind(scope, fn) {
+			    return function () {
+			        fn.apply(scope, arguments);
+			    };
+			}
+			
 			var menuman=new MenuManager();
 			menuman.create();
 		
@@ -183,7 +192,7 @@
 			//Message processing: only "options" page sends a request
 			//
 			chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-				//console.log("background: request: type: "+request.type);
+				console.log(request);
 
 				//options change, notify all "content scripts"
 				if (request.type=="options_change") {

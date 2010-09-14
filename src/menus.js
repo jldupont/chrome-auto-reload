@@ -43,7 +43,7 @@ MenuManager.prototype.handleRandomize = function(info, tab){
 MenuManager.prototype.handleTimeout = function(info, tab){
 
 	var id=info.menuItemId;
-	this.clearTimeoutCheckmarks();
+	this.clearTimeoutCheckMarks();
 	chrome.contextMenus.update(id, {checked: true});
 	localStorage["timeout."+tab.url]=this.timeoutMenuItems[id].random;
 	
@@ -102,7 +102,6 @@ MenuManager.prototype.update = function(url) {
 
 
 MenuManager.prototype.create = function() {
-	//console.log("A: ");
 	
 	// create the top level menus
 	this.rmid=chrome.contextMenus.create(this.randomizeMenu);
@@ -111,10 +110,10 @@ MenuManager.prototype.create = function() {
 	//console.log("B");
 	// options under 'randomize' and 'timeout'
 	var randomizeMenuList=[
-		 {type:"checkbox", title:"Default", contexts:["page"], parentId: this.rmid, onclick: function(info, tab){ this.handleRandomize.call(info, tab); } }
-		,{type:"checkbox", title:"10%",     contexts:["page"], parentId: this.rmid, onclick: function(info, tab){ this.handleRandomize.call(info, tab); } }	
-		,{type:"checkbox", title:"25%",     contexts:["page"], parentId: this.rmid, onclick: function(info, tab){ this.handleRandomize.call(info, tab); } }
-		,{type:"checkbox", title:"50%",     contexts:["page"], parentId: this.rmid, onclick: function(info, tab){ this.handleRandomize.call(info, tab); } }
+		 {type:"checkbox", title:"Default" }
+		,{type:"checkbox", title:"10%"     }
+		,{type:"checkbox", title:"25%"     }
+		,{type:"checkbox", title:"50%"     }
 	];
 	var randomList=[null, 10, 25, 50];
 
@@ -123,6 +122,10 @@ MenuManager.prototype.create = function() {
 	for (var item in randomizeMenuList) {
 		//console.log("menu: "+item);
 		mobj=randomizeMenuList[item];
+		mobj.type="checkbox";
+		mobj.contexts=["page"];
+		mobj.parentId=this.rmid;
+		mobj.onclick=bind(this, this.handleRandomize);
 		id=chrome.contextMenus.create(mobj);
 		
 		mobj.random=randomList[item];
@@ -133,16 +136,16 @@ MenuManager.prototype.create = function() {
 	//console.log("D");
 	// options under 'randomize' and 'timeout'
 	var timeoutMenuList=[
-		 {type:"checkbox", title:"Default", contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}
-		,{type:"checkbox", title:"3sec",    contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}					
-		,{type:"checkbox", title:"10sec",   contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}
-		,{type:"checkbox", title:"30sec",   contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}
-		,{type:"checkbox", title:"60sec",   contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}
-		,{type:"checkbox", title:"120sec",  contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}
-		,{type:"checkbox", title:"300sec",  contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}
-		,{type:"checkbox", title:"900sec",  contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}								
-		,{type:"checkbox", title:"1800sec", contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}
-		,{type:"checkbox", title:"3600sec", contexts:["page"], parentId: this.tmid, onclick: this.handleTimeout}
+		 {type:"checkbox", title:"Default" }
+		,{type:"checkbox", title:"3sec"    }					
+		,{type:"checkbox", title:"10sec"   }
+		,{type:"checkbox", title:"30sec"   }
+		,{type:"checkbox", title:"60sec"   }
+		,{type:"checkbox", title:"120sec"  }
+		,{type:"checkbox", title:"300sec"  }
+		,{type:"checkbox", title:"900sec"  }								
+		,{type:"checkbox", title:"1800sec" }
+		,{type:"checkbox", title:"3600sec" }
 	];
 
 	var timeoutList=[null, 3, 10, 30, 60, 120, 300, 900, 1800, 3600];
@@ -151,6 +154,10 @@ MenuManager.prototype.create = function() {
 	for (var item in timeoutMenuList) {
 		//console.log("menu: "+item);
 		mobj=timeoutMenuList[item];
+		mobj.onclick=bind(this, this.handleTimeout);
+		mobj.parentId=this.tmid;
+		mobj.contexts=["page"];
+		mobj.type="checkbox";
 		id=chrome.contextMenus.create(mobj);
 		
 		mobj.timeout=timeoutList[item];
