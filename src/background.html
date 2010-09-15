@@ -10,6 +10,7 @@
 		<script src="params.js"></script>
 		<script>
 			var url_params=new UrlManager();
+			var opt_params=new OptionsManager();
 		
 			var menuman=new MenuManager(url_params);
 			menuman.create();
@@ -32,17 +33,21 @@
 				var stick     = localStorage["stick."+url] || false;
 				
 				// retrieve per-URL specific parameters
-				var url_timeout   = localStorage["timeout."+url]   || null;
-				var url_randomize = localStorage["randomize."+url] || null;
+				var url_timeout   = this.params.get(url, "timeout",   null);
+				var url_randomize = this.params.get(url, "randomize", null);
 
-				console.log("_sendCmd: url_randomize: "+url_randomize+", url_timeout: "+url_timeout);
+				//console.log("_sendCmd: url_randomize: "+url_randomize+", url_timeout: "+url_timeout);
 				
-				var timeout   = url_timeout   || parseInt(localStorage["timeout"]);
-				var randomize = url_randomize || parseInt(localStorage["randomize"]);
+				var timeout   = url_timeout   || opt_params.get("timeout",   "int", null); //parseInt(localStorage["timeout"]);
+				var randomize = url_randomize || opt_params.get("randomize", "int", null); //parseInt(localStorage["randomize"]);
 
-				var active_time_range=(localStorage["active_time_range"]==="true");
-				var begin_range=parseInt(localStorage["begin_range"]);
-				var end_range=parseInt(localStorage["end_range"]);
+				//var active_time_range=(localStorage["active_time_range"]==="true");
+				//var begin_range=parseInt(localStorage["begin_range"]);
+				//var end_range=parseInt(localStorage["end_range"]);
+				
+				var active_time_range= opt_params.get("active_time_range", "string", false);
+				var begin_range=opt_params.get("begin_range", "int", null);
+				var end_range=opt_params.get("end_range", "int", null);
 				
 				var cmd={"type":"params", "state":state, "timeout":timeout, "randomize":randomize,
 						"begin_range":begin_range, "end_range":end_range,  
