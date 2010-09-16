@@ -25,22 +25,33 @@
 
 			var _sendCmd=function(port) {
 
-				var url = port.tab.url;
-		    	var tid       = port.tab.id;
-		    	var params    = tabParams[tid]     || {};
-		    	var urls      = params["urls"]     || {};
-				var state     = urls[port.tab.url] || false;
-				var stick     = localStorage["stick."+url] || false;
+				var timeout;
+				var randomize;
+				
+				var url    = port.tab.url;
+		    	var tid    = port.tab.id;
+		    	var params = tabParams[tid]     || {};
+		    	var urls   = params["urls"]     || {};
+				var state  = urls[port.tab.url] || false;
+				var stick  = localStorage["stick."+url] || false;
 				
 				// retrieve per-URL specific parameters
-				var url_timeout   = this.params.get(url, "timeout",   null);
-				var url_randomize = this.params.get(url, "randomize", null);
+				var url_timeout   = url_params.get(url, "timeout",   null);
+				var url_randomize = url_params.get(url, "randomize", null);
 
-				//console.log("_sendCmd: url_randomize: "+url_randomize+", url_timeout: "+url_timeout);
 				
-				var timeout   = url_timeout   || opt_params.get("timeout",   "int", null); //parseInt(localStorage["timeout"]);
-				var randomize = url_randomize || opt_params.get("randomize", "int", null); //parseInt(localStorage["randomize"]);
+				if (url_timeout==null || url_timeout=="null")
+					timeout = opt_params.get("timeout", "int", null);
+				else
+					timeout = url_timeout;
 
+				if (url_randomize==null || url_randomize=="null")
+					randomize = opt_params.get("randomize", "int", null);
+				else
+					randomize = url_randomize;
+
+				console.log("_sendCmd: randomize: "+randomize+", timeout: "+timeout);
+				
 				//var active_time_range=(localStorage["active_time_range"]==="true");
 				//var begin_range=parseInt(localStorage["begin_range"]);
 				//var end_range=parseInt(localStorage["end_range"]);
@@ -55,7 +66,7 @@
 						,"stick": stick
 						};
 
-				console.log("_sendCmd: randomize: "+randomize+", timeout: "+timeout);
+				//console.log("_sendCmd: randomize: "+randomize+", timeout: "+timeout);
 				
 				//console.log("active typeof:"+typeof active_time_range);
 				//console.log("* Auto-Reload: tab<"+tid+"> updated, state:"+state+", active:"+active_time_range);
@@ -69,7 +80,7 @@
 
 			function resolveIcon(state, stick) {
 				//console.log("resolveIcon: state: "+state+" stick: "+stick);
-
+				var id;
 				if (stick===true || stick=="true")
 					id=2;
 				else
@@ -86,6 +97,8 @@
 			}
 
 			function computeNextState(cstate, cstick) {
+				//console.log("computeNextState: input: cstate: "+ cstate+", cstick: "+cstick);
+				var ns;
 				
 				if (cstick===true || cstick=="true") {
 					ns={"state": false, "stick": false};
@@ -96,6 +109,7 @@
 						ns={"state": true, "stick": false};
 					}
 				}
+				//console.log("computeNextState: output: state: "+ ns["state"]+", stick: "+ns["stick"]);
 				return ns; 
 			}
 
@@ -113,7 +127,7 @@
 		    	var params = tabParams[tid]            || {};
 		    	var urls   = params["urls"]            || {};
 				var state  = urls[url]                 || false;
-				var stick = localStorage["stick."+url] || false;		
+				var stick  = localStorage["stick."+url] || false;		
 
 				menuman.update(url);
 				
@@ -176,7 +190,7 @@
 			    
 			    state = urls[url] = new_state["state"];
 
-			    localStorage["stick."+url]=new_state["stick"];
+			    stick = localStorage["stick."+url]=new_state["stick"];
 			    
 			    var new_params={"port":port, "urls":urls};
 			    tabParams[tab.id] = new_params;

@@ -37,9 +37,7 @@ MenuManager.prototype.handleRandomize = function(info, tab){
 	this.clearRandomizeCheckMarks();
 	chrome.contextMenus.update(id, {checked: true});
 	this.params.set(tab.url, "randomize", this.randomizeMenuItems[id].random);
-	//localStorage["randomize."+tab.url]=
-	
-	console.log("MenuItemId: "+id+", random: "+this.randomizeMenuItems[id].random+", url:"+tab.url);
+	//console.log("MenuItemId: "+id+", random: "+this.randomizeMenuItems[id].random+", url:"+tab.url);
 };
 
 MenuManager.prototype.handleTimeout = function(info, tab){
@@ -47,19 +45,16 @@ MenuManager.prototype.handleTimeout = function(info, tab){
 	var id=info.menuItemId;
 	this.clearTimeoutCheckMarks();
 	chrome.contextMenus.update(id, {checked: true});
-	//localStorage["timeout."+tab.url]=this.timeoutMenuItems[id].random;
 	this.params.set(tab.url, "timeout", this.timeoutMenuItems[id].timeout);
-	console.log("MenuItemId: "+id+", timeout: "+this.timeoutMenuItems[id].timeout+", url:"+tab.url);
+	//console.log("MenuItemId: "+id+", timeout: "+this.timeoutMenuItems[id].timeout+", url:"+tab.url);
 };
 
 MenuManager.prototype.getRandomize = function(url) {
 	return this.params.get(url, "randomize");
-	//return localStorage["randomize."+url];
 };
 
 MenuManager.prototype.getTimeout = function(url) {
 	return this.params.get(url, "timeout");
-	//return localStorage["timeout."+url];
 };
 
 /**
@@ -89,17 +84,15 @@ MenuManager.prototype.update = function(url) {
 	this.clearRandomizeCheckMarks();
 	this.clearTimeoutCheckMarks();
 	
-	//var r=localStorage["randomize."+url];
-	//var t=localStorage["timeout."+url];
 	var r=this.params.get(url, "randomize", null);
 	var t=this.params.get(url, "timeout",   null);
 	
-	console.log("update: r="+r+", t="+t);
+	//console.log("update: r="+r+", t="+t);
 	
 	var rmenuid=this.findRandomizeMenuItem(r);
 	var tmenuid=this.findTimeoutMenuItem(t);
 	
-	console.log("update: rmenuid="+rmenuid+", tmenuid="+tmenuid);
+	//console.log("update: rmenuid="+rmenuid+", tmenuid="+tmenuid);
 	
 	if (rmenuid!=null)
 		chrome.contextMenus.update(parseInt(rmenuid), {checked: true});
@@ -126,7 +119,6 @@ MenuManager.prototype.create = function() {
 
 	var id, mobj;
 	for (var item in randomizeMenuList) {
-		//console.log("menu: "+item);
 		mobj=randomizeMenuList[item];
 		mobj.contexts=["page"];
 		mobj.parentId=this.rmid;
@@ -135,7 +127,6 @@ MenuManager.prototype.create = function() {
 		
 		mobj.random=randomList[item];
 		this.randomizeMenuItems[id]=mobj;
-		//console.log("=> created menu item: "+id);
 	}
 
 	// options under 'randomize' and 'timeout'
@@ -155,7 +146,6 @@ MenuManager.prototype.create = function() {
 	var timeoutList=[null, 3, 10, 30, 60, 120, 300, 900, 1800, 3600];
 
 	for (var item in timeoutMenuList) {
-		//console.log("menu: "+item);
 		mobj=timeoutMenuList[item];
 		mobj.onclick=bind(this, this.handleTimeout);
 		mobj.parentId=this.tmid;
@@ -164,6 +154,5 @@ MenuManager.prototype.create = function() {
 		
 		mobj.timeout=timeoutList[item];
 		this.timeoutMenuItems[id]=mobj;
-		//console.log("=> created menu item: "+id);
 	}
 };

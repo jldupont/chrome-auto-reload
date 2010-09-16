@@ -4,7 +4,10 @@
  * @author: Jean-Lou Dupont
  */
 
-/*  Useful for binding callbacks to a scope
+/**
+ * 	Callback generator for 'class' method instances	
+ * 
+ *  Useful for binding callbacks to a scope
  *  Required function for Classes defined herein
  */
 function bind(scope, fn) {
@@ -13,7 +16,10 @@ function bind(scope, fn) {
     };
 }
 
-/*
+/**
+ * Adds a method definition facility 
+ * to the base Function definition
+ * 
  * from D. Crockford
  */
 Function.prototype.method = function (name, func) {
