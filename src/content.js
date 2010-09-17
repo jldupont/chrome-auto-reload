@@ -38,13 +38,16 @@ function maybeReload() {
 	if (state===true || state=="true" || stick===true || stick==="true") {
 		// is there a "disabled_time_range" active?
 		if (active_time_range != false) {
-			if (checkTimeRange())
-				window.location.reload(true);
-			else
+			if (checkTimeRange()) {
+				//window.location.reload(true);
+				history.go(0);
+			} else {
 				//recheck later
 				doSetTimeout();
+			}
 		} else {
-			window.location.reload(true);	
+			//window.location.reload(true);
+			history.go(0);
 		}
 		//console.log(" > auto-reload: scheduled in "+timeout+" ms.");
 	} else {
@@ -79,15 +82,13 @@ function reloader(cmd) {
 	//console.log("Active Time Range: "+active_time_range);
 	
 	timeout = timeout * 1000;
-	
-	
 	timeout = timeout + timeout * (randomize/100 * Math.random());
+
 	//console.log("Randomize timeout: "+timeout);
-	
 	//console.log("begin_range: "+begin_range+", end_range: "+end_range);
 		
 	if (!timer_id)
-		doSetTimeout();	
+		doSetTimeout();
 }//
 
 port=chrome.extension.connect();

@@ -56,7 +56,7 @@
 				//var begin_range=parseInt(localStorage["begin_range"]);
 				//var end_range=parseInt(localStorage["end_range"]);
 				
-				var active_time_range= opt_params.get("active_time_range", "string", false);
+				var active_time_range= opt_params.get("active_time_range", "string", false)==="true";
 				var begin_range=opt_params.get("begin_range", "int", null);
 				var end_range=opt_params.get("end_range", "int", null);
 				
@@ -206,7 +206,7 @@
 			//Message processing: only "options" page sends a request
 			//
 			chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-				console.log(request);
+				//console.log(request);
 
 				//options change, notify all "content scripts"
 				if (request.type=="options_change") {
