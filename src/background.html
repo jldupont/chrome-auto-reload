@@ -50,7 +50,7 @@
 				else
 					randomize = url_randomize;
 
-				console.log("_sendCmd: randomize: "+randomize+", timeout: "+timeout);
+				//console.log("_sendCmd: randomize: "+randomize+", timeout: "+timeout);
 				
 				//var active_time_range=(localStorage["active_time_range"]==="true");
 				//var begin_range=parseInt(localStorage["begin_range"]);
@@ -79,7 +79,6 @@
 			};
 
 			function resolveIcon(state, stick) {
-				//console.log("resolveIcon: state: "+state+" stick: "+stick);
 				var id;
 				if (stick===true || stick=="true")
 					id=2;
@@ -97,7 +96,6 @@
 			}
 
 			function computeNextState(cstate, cstick) {
-				//console.log("computeNextState: input: cstate: "+ cstate+", cstick: "+cstick);
 				var ns;
 				
 				if (cstick===true || cstick=="true") {
@@ -109,7 +107,6 @@
 						ns={"state": true, "stick": false};
 					}
 				}
-				//console.log("computeNextState: output: state: "+ ns["state"]+", stick: "+ns["stick"]);
 				return ns; 
 			}
 

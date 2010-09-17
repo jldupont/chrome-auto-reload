@@ -3,6 +3,11 @@ Google Chrome "Auto-Reload" extension
 Releases
 ========
 
+7.0
+---
+
+* per-URL configuration through "context-menus" (i.e. right button click)
+
 6.6
 ---
 
