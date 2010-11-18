@@ -3,6 +3,11 @@ Google Chrome "Auto-Reload" extension
 Releases
 ========
 
+7.7
+---
+
+* scroll position restoration
+
 7.0
 ---
 

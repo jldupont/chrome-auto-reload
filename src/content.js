@@ -40,6 +40,7 @@ function maybeReload() {
 		if (active_time_range != false) {
 			if (checkTimeRange()) {
 				//window.location.reload(true);
+				localStorage["autoreload.scrollTop"]=document.body.scrollTop;
 				history.go(0);
 			} else {
 				//recheck later
@@ -47,6 +48,7 @@ function maybeReload() {
 			}
 		} else {
 			//window.location.reload(true);
+			localStorage["autoreload.scrollTop"]=document.body.scrollTop;
 			history.go(0);
 		}
 		//console.log(" > auto-reload: scheduled in "+timeout+" ms.");
@@ -93,3 +95,6 @@ function reloader(cmd) {
 
 port=chrome.extension.connect();
 port.onMessage.addListener(reloader);
+
+var savedScrollTop=localStorage["autoreload.scrollTop"] || 0;
+document.body.scrollTop=savedScrollTop;
