@@ -1,6 +1,6 @@
 {
 	"name": "Auto-Reload",
-	"version": "7.7",
+	"version": "7.8",
 	"id" : "kdilcdffbkimjhmleljcofcmgdfiibng",
 	"description": "Time interval page auto-reloader", 
 	"icons": {"128":"reload24-off.png", "24":"reload24-off.png"},

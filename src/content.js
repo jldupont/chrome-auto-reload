@@ -3,6 +3,9 @@
  * @file   content.js
  * @author Jean-Lou Dupont
  * @desc   Content Script
+ * 
+ * It would appear that using the "history" object for triggering a reload
+ *  has a very different behavior than using "window.location.reload" method.
  */
 
 var timer_id;
@@ -39,17 +42,17 @@ function maybeReload() {
 		// is there a "disabled_time_range" active?
 		if (active_time_range != false) {
 			if (checkTimeRange()) {
-				//window.location.reload(true);
-				localStorage["autoreload.scrollTop"]=document.body.scrollTop;
-				history.go(0);
+				window.location.reload(true);
+				//localStorage["autoreload.scrollTop"]=document.body.scrollTop;
+				//history.go(0);
 			} else {
 				//recheck later
 				doSetTimeout();
 			}
 		} else {
-			//window.location.reload(true);
-			localStorage["autoreload.scrollTop"]=document.body.scrollTop;
-			history.go(0);
+			window.location.reload(true);
+			//localStorage["autoreload.scrollTop"]=document.body.scrollTop;
+			//history.go(0);
 		}
 		//console.log(" > auto-reload: scheduled in "+timeout+" ms.");
 	} else {
@@ -96,5 +99,10 @@ function reloader(cmd) {
 port=chrome.extension.connect();
 port.onMessage.addListener(reloader);
 
-var savedScrollTop=localStorage["autoreload.scrollTop"] || 0;
-document.body.scrollTop=savedScrollTop;
+//var savedScrollTop=localStorage["autoreload.scrollTop"] || 0;
+
+// check if the document's URL contains an anchor; in which case,
+// do not change the scrollTop position (v7.8)
+//if (document.location.href.indexOf("#") == -1)
+//	document.body.scrollTop=savedScrollTop;
+
