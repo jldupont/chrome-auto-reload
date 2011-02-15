@@ -2,6 +2,8 @@
  * 	Params.js
  * 
  * 	@author: Jean-Lou Dupont
+ * 
+ * Dependency:  oo.js
  */
 
 function UrlManager() {}

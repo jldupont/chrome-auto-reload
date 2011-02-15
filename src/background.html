@@ -3,12 +3,27 @@
  	@title  Auto-Reload
  	@author Jean-Lou Dupont
  	@desc   Background page for Auto-Reload
+ 	
+ 	States:
+ 		- OFF
+ 		- ON
+ 		- ON & Sticky
+ 		- STOPPED
+ 		
+ 	Icon "click flow":
+ 		OFF ------> ON --> STICKY
+ 		STOPPED --> ON --> STICKY --> OFF
+ 		STOPPED ---------> STICKY --> OFF    
+ 	
   -->
 	<head>
 		<script src="oo.js"></script>
 		<script src="menus.js"></script>
 		<script src="params.js"></script>
 		<script>
+			function State() {}
+			State.S = { OFF:0, ON:1, STICKY:2, STOPPED: 3};
+		
 			var url_params=new UrlManager();
 			var opt_params=new OptionsManager();
 		
@@ -17,7 +32,11 @@
 		
 			var pageActionId = "auto_reload";
 			var tabParams = {};
-			var iconsPath = {0:"reload24-off.png", 1:"reload24-on.png", 2:"reload24-stick.png"};
+			var iconsPath = {	State.S.OFF:	"reload24-off.png", 
+								State.S.ON:		"reload24-on.png", 
+								State.S.STICKY:	"reload24-stick.png", 
+								State.S.STOPPED:"reload24-stopped.png"
+								};
 			var icons  = {"true": 1, "false": 0};
 			var titles = {  0: "Click to start auto-reload",
 							1: "Click to engage sticky auto-reload",
