@@ -31,6 +31,10 @@
 			menuman.create();
 		
 			var pageActionId = "auto_reload";
+			
+			/*  
+			 *  Current session tab parameters
+			 */
 			var tabParams = {};
 			
 			var iconsPath={};
@@ -135,13 +139,15 @@
 			// ============================================================================================= HANDLERS
 			// =============================================================================================
 
-			// A 'tab' connects to the background page
-			//
+			/*
+			 *  A 'tab' connects to the background page
+			 */
 			chrome.extension.onConnect.addListener(function(port) {				
 				//console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
 						
 		    	var tid    = port.tab.id;
 		    	var url    = port.tab.url;
+		    	
 		    	var params = tabParams[tid]            || {};
 		    	var urls   = params["urls"]            || {};
 				var state  = urls[url]                 || false;
@@ -172,6 +178,8 @@
 			//  he/she probably don't want to keep re-loading the new target.
 			chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
 
+				console.log("* tab updated: "+tabId);
+				
 				var urlChanged=changeInfo["url"] || false;
 				if (urlChanged === false)
 					return;
@@ -241,8 +249,10 @@
 							_sendCmd(port);
 					}	
 				}
+				
+				// The 'tab' intercepted a keydown...
 				if (request.type=="keydown") {
-					console.log("keydown!");
+					console.log("keydown! "+sender.tab.id);
 				}
 			});
 

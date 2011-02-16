@@ -113,7 +113,8 @@ port.onMessage.addListener(reloader);
 
 document.onkeydown = function keydownHandler(e) {
 	chrome.extension.sendRequest({type: "keydown"}, function(response) {});
+	console.log(">> sent keydown");
 };
 
-
+console.log(">> tab loaded!");
 
