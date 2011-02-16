@@ -21,7 +21,7 @@
 		<script src="menus.js"></script>
 		<script src="params.js"></script>
 		<script>
-			function State() {}
+			function State() {};
 			State.S = { OFF:0, ON:1, STICKY:2, STOPPED: 3};
 		
 			var url_params=new UrlManager();
@@ -32,11 +32,13 @@
 		
 			var pageActionId = "auto_reload";
 			var tabParams = {};
-			var iconsPath = {	State.S.OFF:	"reload24-off.png", 
-								State.S.ON:		"reload24-on.png", 
-								State.S.STICKY:	"reload24-stick.png", 
-								State.S.STOPPED:"reload24-stopped.png"
-								};
+			
+			var iconsPath={};
+			iconsPath[State.S.OFF]="reload24-off.png";
+			iconsPath[State.S.ON]="reload24-on.png";
+			iconsPath[State.S.STICKY]="reload24-stick.png";
+			iconsPath[State.S.STOPPED]="reload24-stopped.png";
+			
 			var icons  = {"true": 1, "false": 0};
 			var titles = {  0: "Click to start auto-reload",
 							1: "Click to engage sticky auto-reload",
@@ -222,7 +224,9 @@
 				}
 			});
 
-			//Message processing: only "options" page sends a request
+			//Message processing: 
+			//  - "options" page sends a request
+			//  - "content script" with "keydown"
 			//
 			chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
 				//console.log(request);
@@ -236,6 +240,9 @@
 							//console.log("bg: updating tab<"+tid+">");
 							_sendCmd(port);
 					}	
+				}
+				if (request.type=="keydown") {
+					console.log("keydown!");
 				}
 			});
 

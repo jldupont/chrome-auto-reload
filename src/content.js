@@ -106,3 +106,14 @@ port.onMessage.addListener(reloader);
 //if (document.location.href.indexOf("#") == -1)
 //	document.body.scrollTop=savedScrollTop;
 
+// =======================================================================================
+//
+//  Keypress handler
+//
+
+document.onkeydown = function keydownHandler(e) {
+	chrome.extension.sendRequest({type: "keydown"}, function(response) {});
+};
+
+
+
