@@ -21,9 +21,9 @@
  *
  */
 
-function FSM(url) {
-	this.url=url;
-	this.state="off";
+function FSM() {
+	this.state={};
+	this.url_map={};
 	this.map={
 		"off": "on",
 		"on":  "sticky",
@@ -31,25 +31,30 @@ function FSM(url) {
 		"stopped": "on",
 	};
 	this.data={};
-	this._update();
 }
 
-FSM.method("_update", function(){
-	var sticky_state=localStorage["sticky."+this.url] === "on";
+FSM.method("_update", function(tid){
+	if (this.url[map]==undefined)
+		return;
+		
+	var sticky_state=localStorage["sticky."+this.url_map[tid]] === "on";
 	if (sticky_state)
-		this.state="sticky";
+		this.state[tid]="sticky";
 });
 
 /**
  * 
+ * @param integer tid
  * @param {Object} n namespace
  * @param {Object} k key
  * @param {Object} v value
  */
-FSM.method("setData", function(n,k,v){
-	var set=this.data[n];
+FSM.method("setData", function(tid, n,k,v){
+	var tset=this.data[tid] || {};
+	var set=tset[n];
 	set[k]=v;
-	this.data[n]=set;
+	tset[n]=set
+	this.data[n]=tset;
 });
 
 /**
@@ -57,37 +62,44 @@ FSM.method("setData", function(n,k,v){
  * @param {Object} n
  * @param {Object} k
  */
-FSM.method("getData", function(n, k) {
-	var set=this.data[n];
+FSM.method("getData", function(tid, n, k) {
+	var tset=this.data[tid] || {};
+	var set=tset[n];
 	return set[k];
 });
 
-FSM.method("getState", function(){
-	return this.state;
+FSM.method("getState", function(tid){
+	var state=this.state[tid] || "off";
+	return state;
 });
 
-FSM.method("setUrl", function(url){
-	this.url=url;
+FSM.method("setUrl", function(tid, url){
+	this.url_map[tid]=url;
+	this._update(tid);
 });
 
-
-FSM.method("nextState", function(stop_event) {
-	if (this.state=="sticky")
-		localStorage["sticky."+this.url]="not sticky";
+FSM.method("nextState", function(tid, stop_event) {
+	var url=this.url_map[tid];
+	var state=this.state[tid] || "off";
+	
+	if (url!=undefined)
+		if (state=="sticky")
+			localStorage["sticky."+url]="not sticky";
 	var next=null;
 	if (stop_event) {
-		if (this.state=="on") {
+		if (state=="on") {
 			next="stopped";
 		} else {
-			if (this.state == "sticky") {
+			if (state == "sticky") {
 				next = "sticky_stopped";
 			} else
-				next=this.map[this.state];
+				next=this.map[state];
 		} 
 	} else
-		next=this.map[this.state];
+		next=this.map[state];
 		
 	if (next=="sticky")
-		localStorage["sticky."+this.url]="sticky";
-	return this.state=next;
+		if (url!=undefined)
+			localStorage["sticky."+url]="sticky";
+	return this.state[tid]=next;
 });

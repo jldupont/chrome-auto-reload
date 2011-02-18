@@ -12,27 +12,26 @@
 			var value1=t.getByTidUrl(1, "url1", "key1");
 			if (value1!="value1")
 				console.error("key1 error!");
-				
-			var f=new FSM("test");
+			var s;			
+			var tid=1;
+			var f=new FSM();
 			// off -> on --> sticky --> off
-			if (f.nextState() !="on")
-				console.error("expected 'on' state");
-			if (f.nextState() !="sticky")
+			if ((s=f.nextState(tid, false)) !="on")
+				console.error("expected 'on' state, got:"+s);
+			if (f.nextState(tid, false) !="sticky")
 				console.error("expected 'sticky' state");
-			if (f.nextState() !="off")
+			if (f.nextState(tid, false) !="off")
 				console.error("expected 'off' state");
 			
 			// off (stop) --> on(stop) --> stopped(stop) --> on
-			var s;
-			if ((s=f.nextState(true)) !="on")
+
+			if ((s=f.nextState(tid, true)) !="on")
 				console.error("expected 'on' state, got:"+s);
-			if ((s=f.nextState(true)) !="stopped")
+			if ((s=f.nextState(tid, true)) !="stopped")
 				console.error("expected 'stopped' state, got:"+s);
-			if ((s=f.nextState(true)) !="on")
+			if ((s=f.nextState(tid, true)) !="on")
 				console.error("expected 'on' state, got:"+s);
 
-			f.setUrl("test");
-			
 			
 		</script>
 	</body>

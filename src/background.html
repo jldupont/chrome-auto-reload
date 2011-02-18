@@ -24,7 +24,8 @@
 		<script src="fsm.js"></script>
 		<script>
 			var fsm=FSM();
-					
+			var ports={};
+			
 			var url_params=new UrlManager();
 			var opt_params=new OptionsManager();
 			var tab_params=new TabParams();
@@ -37,7 +38,7 @@
 			/*  
 			 *  Current session tab parameters
 			 */
-			var tabParams = {};
+
 			fsm.setData("icon", "on",  "reload24-on.png");
 			fsm.setData("icon", "off", "reload24-off.png"); 
 			fsm.setData("icon", "sticky", "reload24-stick.png");
@@ -57,10 +58,9 @@
 				var url    = port.tab.url;
 		    	var tid    = port.tab.id;
 
-		    	var state = tab_params.getByTidUrl(tid, url);
+		    	var state = fsm.getState(tid);
 		    	
 		    	// retrieve per-URL specific parameters
-				var url_stick     = url_params.get(url, "stick", false);
 				var url_timeout   = url_params.get(url, "timeout",   null);
 				var url_randomize = url_params.get(url, "randomize", null);
 	
@@ -87,7 +87,6 @@
 				var cmd={"type":"params", "state":state, "timeout":timeout, "randomize":randomize,
 						"begin_range":begin_range, "end_range":end_range,  
 						"active_time_range":active_time_range
-						,"stick": url_stick
 						};
 
 				//console.log("_sendCmd: randomize: "+randomize+", timeout: "+timeout);
@@ -102,7 +101,8 @@
 				} catch(err) {}				
 			};
 
-			function setIcon(tid, state) {
+			function setIcon(tid) {
+				var state=fsm.getState(tid);
 				var icon_path=fsm.getData("icon", state);
 				var title=fsm.getData("title", state);
 
@@ -123,27 +123,17 @@
 		    	var tid    = port.tab.id;
 		    	var url    = port.tab.url;
 		    	
-		    	var params = tabParams[tid]            || {};
-		    	var urls   = params["urls"]            || {};
-				var state  = urls[url]                 || false;
-				var stick  = localStorage["stick."+url] || false;		
-
+		    	ports[tid]=port;
+		    	
+		    	fsm.setUrl(tid, url);
 				menuman.update(url);
-				
-				// Cases:
-				// 1- new tab
-				// 2- page load / returning through 'back' button
-				urls[url]      = state;
-				params["urls"] = urls;			
-				params["port"] = port;
-				tabParams[tid] = params;
 				
 				//we just received this 'connect' request so
 				//the port must be ok to use: assume safe.
 				_sendCmd(port);
 
 				chrome.pageAction.show(tid);
-				setIcon(tid, state, stick);
+				setIcon(tid);
 			});
 
 
@@ -158,18 +148,9 @@
 				var urlChanged=changeInfo["url"] || false;
 				if (urlChanged === false)
 					return;
-
-				//not sure if this can happen...
-				var params=tabParams[tabId] || null;
-				if (params===null)
-					return;
-
-				//something wrong here... shouldn't happen
-				//but hey, I am being paranoid ;-)
-				var port=params["port"] || null;
-				if (null===port)  
-					return;
-
+				fsm.setUrl(tabId, changeInfo["url]);
+				
+				var port=ports[tabId];
 				_sendCmd(port);
 			});
 
@@ -182,26 +163,15 @@
 				// action multiple times.
 				var url    = tab.url || "";
 			    var params = tabParams[tab.id] || {};
-			    var urls   = params["urls"]    || {};
-			    var state  = urls[url]         || false;
-			    var port   = params["port"]    || null;
-			    var stick  = localStorage["stick."+url] || false;
+			    var port   = ports[tab.id] || null;
 			       
-			    var new_state=computeNextState(state, stick);
+			    fsm.nextState(tab.id, false);
 			    
-			    state = urls[url] = new_state["state"];
-
-			    stick = localStorage["stick."+url]=new_state["stick"];
-			    
-			    var new_params={"port":port, "urls":urls};
-			    tabParams[tab.id] = new_params;
-
-			    //console.log( new_params );
 			    if (port) {
 					_sendCmd(port);
 					
 					//console.log("* Auto-Reload: Sent Message - tabId<"+tab.id+">  state<"+new_state+">");
-					setIcon(tab.id, state, stick);
+					setIcon(tab.id);
 			    } else {
 					//console.log("! Auto-Reload: CANNOT send - tabId<"+tab.id+">  state<"+new_state+">");
 				}

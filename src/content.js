@@ -18,7 +18,7 @@ var default_begin_range=7*60;
 var default_end_range=20*60;
 
 // Context variables
-var state, timeout, randomize, active_time_range, begin_range, end_range, stick;
+var state, timeout, randomize, active_time_range, begin_range, end_range;
 var timer_id=null;
 
 function checkTimeRange() {
@@ -38,7 +38,7 @@ function maybeReload() {
 	
 	//console.log("state: "+state+", stick: "+stick);
 	
-	if (state===true || state=="true" || stick===true || stick==="true") {
+	if (state=="on" || state=="sticky") {
 		// is there a "disabled_time_range" active?
 		if (active_time_range != false) {
 			if (checkTimeRange()) {
@@ -72,12 +72,11 @@ function doSetTimeout() {
 
 function reloader(cmd) {
 
-	state     =   cmd.state       || false;
+	state     =   cmd.state       || "off";
 	timeout   =   cmd.timeout     || default_inter;
 	randomize =   cmd.randomize   || default_randomize;
 	begin_range = cmd.begin_range || default_begin_range;
 	end_range   = cmd.end_range   || default_end_range;
-	stick =       cmd.stick       || false;
 	
 	//console.log("Base timeout: " + timeout + ", randomize (%): "+ randomize);
 	
