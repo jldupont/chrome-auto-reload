@@ -23,7 +23,7 @@
 		<script src="tabparams.js"></script>
 		<script src="fsm.js"></script>
 		<script>
-			var fsm=new FSM();
+			var fsm=FSM();
 			var ports={};
 			
 			var url_params=new UrlManager();
@@ -118,7 +118,7 @@
 			 *  A 'tab' connects to the background page
 			 */
 			chrome.extension.onConnect.addListener(function(port) {				
-				console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
+				//console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
 						
 		    	var tid    = port.tab.id;
 		    	var url    = port.tab.url;
@@ -148,7 +148,7 @@
 				var urlChanged=changeInfo["url"] || false;
 				if (urlChanged === false)
 					return;
-				fsm.setUrl(tabId, changeInfo["url"]);
+				fsm.setUrl(tabId, changeInfo["url]);
 				
 				var port=ports[tabId];
 				_sendCmd(port);
@@ -161,15 +161,20 @@
 				// We need to know if we are the active window, because the tab may
 				// have moved to another window and we don't want to execute this
 				// action multiple times.
-			    var port = ports[tab.id] || null;
-				if (port == null) {
-					console.error("onClicked: port is null...");
-					return;
-				}
+				var url    = tab.url || "";
+			    var params = tabParams[tab.id] || {};
+			    var port   = ports[tab.id] || null;
 			       
 			    fsm.nextState(tab.id, false);
 			    
-				_sendCmd(port);
+			    if (port) {
+					_sendCmd(port);
+					
+					//console.log("* Auto-Reload: Sent Message - tabId<"+tab.id+">  state<"+new_state+">");
+					setIcon(tab.id);
+			    } else {
+					//console.log("! Auto-Reload: CANNOT send - tabId<"+tab.id+">  state<"+new_state+">");
+				}
 			});
 
 			//Message processing: 

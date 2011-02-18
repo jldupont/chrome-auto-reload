@@ -51,7 +51,7 @@ FSM.method("_update", function(tid){
  */
 FSM.method("setData", function(tid, n,k,v){
 	var tset=this.data[tid] || {};
-	var set=tset[n];
+	var set=tset[n] || {};
 	set[k]=v;
 	tset[n]=set
 	this.data[n]=tset;
@@ -64,7 +64,7 @@ FSM.method("setData", function(tid, n,k,v){
  */
 FSM.method("getData", function(tid, n, k) {
 	var tset=this.data[tid] || {};
-	var set=tset[n];
+	var set=tset[n] || {};
 	return set[k];
 });
 
