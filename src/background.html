@@ -21,12 +21,13 @@
 		<script src="menus.js"></script>
 		<script src="params.js"></script>
 		<script src="tabparams.js"></script>
+		<script src="fsm.js"></script>
 		<script>
-			function State() {};
-			State.S = { OFF:0, ON:1, STICKY:2, STOPPED: 3};
-		
+			var fsm=FSM();
+					
 			var url_params=new UrlManager();
 			var opt_params=new OptionsManager();
+			var tab_params=new TabParams();
 		
 			var menuman=new MenuManager(url_params);
 			menuman.create();
@@ -37,18 +38,17 @@
 			 *  Current session tab parameters
 			 */
 			var tabParams = {};
+			fsm.setData("icon", "on",  "reload24-on.png");
+			fsm.setData("icon", "off", "reload24-off.png"); 
+			fsm.setData("icon", "sticky", "reload24-stick.png");
+			fsm.setData("icon", "stopped", "reload24-stopped.png");
+		
+			fsm.setData("title", "on",      "Click to start auto-reload");
+			fsm.setData("title", "off",     "Click to engage sticky auto-reload");
+			fsm.setData("title", "sticky",  "Click to stop auto-reload");
+			fsm.setData("title", "stopped", "Click to restart auto-reload");
+						
 			
-			var iconsPath={};
-			iconsPath[State.S.OFF]="reload24-off.png";
-			iconsPath[State.S.ON]="reload24-on.png";
-			iconsPath[State.S.STICKY]="reload24-stick.png";
-			iconsPath[State.S.STOPPED]="reload24-stopped.png";
-			
-			var icons  = {"true": 1, "false": 0};
-			var titles = {  0: "Click to start auto-reload",
-							1: "Click to engage sticky auto-reload",
-							2: "Click to stop auto-reload"};
-
 			var _sendCmd=function(port) {
 
 				var timeout;
@@ -56,16 +56,14 @@
 				
 				var url    = port.tab.url;
 		    	var tid    = port.tab.id;
-		    	var params = tabParams[tid]     || {};
-		    	var urls   = params["urls"]     || {};
-				var state  = urls[port.tab.url] || false;
-				var stick  = localStorage["stick."+url] || false;
-				
-				// retrieve per-URL specific parameters
+
+		    	var state = tab_params.getByTidUrl(tid, url);
+		    	
+		    	// retrieve per-URL specific parameters
+				var url_stick     = url_params.get(url, "stick", false);
 				var url_timeout   = url_params.get(url, "timeout",   null);
 				var url_randomize = url_params.get(url, "randomize", null);
-
-				
+	
 				if (url_timeout==null || url_timeout=="null")
 					timeout = opt_params.get("timeout", "int", null);
 				else
@@ -89,7 +87,7 @@
 				var cmd={"type":"params", "state":state, "timeout":timeout, "randomize":randomize,
 						"begin_range":begin_range, "end_range":end_range,  
 						"active_time_range":active_time_range
-						,"stick": stick
+						,"stick": url_stick
 						};
 
 				//console.log("_sendCmd: randomize: "+randomize+", timeout: "+timeout);
@@ -104,36 +102,12 @@
 				} catch(err) {}				
 			};
 
-			function resolveIcon(state, stick) {
-				var id;
-				if (stick===true || stick=="true")
-					id=2;
-				else
-					id = icons[String(state)];
-				return id;
-			}
+			function setIcon(tid, state) {
+				var icon_path=fsm.getData("icon", state);
+				var title=fsm.getData("title", state);
 
-			function setIcon(tid, state, stick) {
-				var id=resolveIcon(state, stick);
-				var title=titles[id];
-				var iconPath=iconsPath[id];
-				chrome.pageAction.setIcon({"tabId": tid, "path":iconPath});
+				chrome.pageAction.setIcon({"tabId": tid, "path":icon_path});
 				chrome.pageAction.setTitle({"tabId": tid, "title": title});						
-			}
-
-			function computeNextState(cstate, cstick) {
-				var ns;
-				
-				if (cstick===true || cstick=="true") {
-					ns={"state": false, "stick": false};
-				} else {
-					if (cstate===true || cstick=="true") {
-						ns={"state": true, "stick": true};
-					} else {
-						ns={"state": true, "stick": false};
-					}
-				}
-				return ns; 
 			}
 
 			// =============================================================================================

@@ -13,23 +13,26 @@
 			if (value1!="value1")
 				console.error("key1 error!");
 				
-			var f=new FSM();
+			var f=new FSM("test");
 			// off -> on --> sticky --> off
-			if (f.next() !="on")
+			if (f.nextState() !="on")
 				console.error("expected 'on' state");
-			if (f.next() !="sticky")
+			if (f.nextState() !="sticky")
 				console.error("expected 'sticky' state");
-			if (f.next() !="off")
+			if (f.nextState() !="off")
 				console.error("expected 'off' state");
 			
 			// off (stop) --> on(stop) --> stopped(stop) --> on
-			if (f.next(true) !="on")
-				console.error("expected 'on' state");
-			if (f.next(true) !="stopped")
-				console.error("expected 'stopped' state");
-			if (f.next(true) !="on")
-				console.error("expected 'on' state");
+			var s;
+			if ((s=f.nextState(true)) !="on")
+				console.error("expected 'on' state, got:"+s);
+			if ((s=f.nextState(true)) !="stopped")
+				console.error("expected 'stopped' state, got:"+s);
+			if ((s=f.nextState(true)) !="on")
+				console.error("expected 'on' state, got:"+s);
 
+			f.setUrl("test");
+			
 			
 		</script>
 	</body>
