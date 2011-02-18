@@ -2,6 +2,7 @@
 	<head>
 		<script type="text/javascript" src="oo.js"></script>
 		<script type="text/javascript" src="tabparams.js"></script>
+		<script type="text/javascript" src="fsm.js"></script>
 	</head>
 
 	<body>
@@ -11,6 +12,25 @@
 			var value1=t.getByTidUrl(1, "url1", "key1");
 			if (value1!="value1")
 				console.error("key1 error!");
+				
+			var f=new FSM();
+			// off -> on --> sticky --> off
+			if (f.next() !="on")
+				console.error("expected 'on' state");
+			if (f.next() !="sticky")
+				console.error("expected 'sticky' state");
+			if (f.next() !="off")
+				console.error("expected 'off' state");
+			
+			// off (stop) --> on(stop) --> stopped(stop) --> on
+			if (f.next(true) !="on")
+				console.error("expected 'on' state");
+			if (f.next(true) !="stopped")
+				console.error("expected 'stopped' state");
+			if (f.next(true) !="on")
+				console.error("expected 'on' state");
+
+			
 		</script>
 	</body>
 
