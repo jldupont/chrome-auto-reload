@@ -21,22 +21,46 @@
 				console.error("expecting 'undefined'");
 
 			// off -> on --> sticky --> off
-			if ((s=f.nextState(tid, false)) !="on")
+			f.nextState(tid, false);
+			s=f.getState(tid);
+			if ( s!="on")
 				console.error("expected 'on' state, got:"+s);
-			if (f.nextState(tid, false) !="sticky")
+			f.nextState(tid, false);
+			s=f.getState(tid);
+
+			if (s !="sticky")
 				console.error("expected 'sticky' state");
-			if (f.nextState(tid, false) !="off")
+			f.nextState(tid, false);
+			s=f.getState(tid);
+				
+			if (s !="off")
 				console.error("expected 'off' state");
 			
-			// off (stop) --> on(stop) --> stopped(stop) --> on
+			f.setState(tid, "off");
+			
+			// off (stop) --> off(stop) 
+			f.nextState(tid, true);
+			s=f.getState(tid);
+			if (s !="off")
+				console.error("s/expected 'off' state, got:"+s);
+			f.setState(tid, "on");
+			f.nextState(tid, true);
+			s=f.getState(tid);
+				
+			if (s !="stopped")
+				console.error("s/expected 'stopped' state, got:"+s);
+			
+			f.setState(tid, "stopped");
+			f.nextState(tid, true);
+			s=f.getState(tid);	
+			if (s !="stopped")
+				console.error("s/expected 'stopped' state, got:"+s);
 
-			if ((s=f.nextState(tid, true)) !="on")
-				console.error("expected 'on' state, got:"+s);
-			if ((s=f.nextState(tid, true)) !="stopped")
-				console.error("expected 'stopped' state, got:"+s);
-			if ((s=f.nextState(tid, true)) !="on")
-				console.error("expected 'on' state, got:"+s);
-
+			f.setState(tid, "sticky_stopped");
+			f.nextState(tid, true);
+			s=f.getState(tid);	
+			if (s !="sticky_stopped")
+				console.error("s/expected 'sticky_stopped' state, got:"+s);
 			
 		</script>
 	</body>

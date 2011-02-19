@@ -30,6 +30,14 @@ function FSM() {
 		"sticky": "off",
 		"stopped": "on",
 	};
+	this.smap={
+		"off":     "off",
+		"on":      "stopped",
+		"sticky":  "sticky_stopped",
+		"stopped": "stopped",
+		"sticky_stopped":"sticky_stopped"
+			};
+	
 	this.data={};
 }
 
@@ -68,6 +76,10 @@ FSM.method("getData", function(tid, n, k) {
 	return set[k];
 });
 
+FSM.method("setState", function(tid, state){
+	this.state[tid]=state;
+});
+
 FSM.method("getState", function(tid){
 	var state=this.state[tid] || "off";
 	return state;
@@ -78,6 +90,12 @@ FSM.method("setUrl", function(tid, url){
 	this._update(tid);
 });
 
+/**
+ * 
+ * @param {Object} tid
+ * @param {Object} stop_event
+ * @return: true if state hasn't changed
+ */
 FSM.method("nextState", function(tid, stop_event) {
 	var url=this.url_map[tid];
 	var state=this.state[tid] || "off";
@@ -89,19 +107,14 @@ FSM.method("nextState", function(tid, stop_event) {
 			localStorage["sticky."+url]="not sticky";
 	var next=null;
 	if (stop_event) {
-		if (state=="on") {
-			next="stopped";
-		} else {
-			if (state == "sticky") {
-				next = "sticky_stopped";
-			} else
-				next=this.map[state];
-		} 
+		next=this.smap[state];
 	} else
 		next=this.map[state];
 		
 	if (next=="sticky")
 		if (url!=undefined)
 			localStorage["sticky."+url]="sticky";
-	return this.state[tid]=next;
+			
+	this.state[tid]=next;
+	return state!=next;
 });

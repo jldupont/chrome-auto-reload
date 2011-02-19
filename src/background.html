@@ -108,7 +108,7 @@
 				var state=fsm.getState(tid);
 				var icon_path=fsm.getData(0, "icon", state);
 				var title=fsm.getData(0, "title", state);
-				console.log("tid:"+tid+"icon_path: "+icon_path+", title:"+title);
+				//console.log("tid:"+tid+"icon_path: "+icon_path+", title:"+title);
 
 				chrome.pageAction.show(tid);
 				chrome.pageAction.setIcon({"tabId": tid, "path":icon_path});
@@ -190,7 +190,7 @@
 			//  - "content script" with "keydown"
 			//
 			chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-				console.log("> onRequest");
+				//console.log("> onRequest");
 
 				//options change, notify all "content scripts"
 				if (request.type=="options_change") {
@@ -203,7 +203,14 @@
 				
 				// The 'tab' intercepted a keydown...
 				if (request.type=="keydown") {
-					console.log("keydown! "+sender.tab.id);
+					var tid=sender.tab.id;
+					var port=ports[tid];
+					
+					var changed=fsm.nextState(tid, true);
+					if (changed) {
+ 						setIcon(tid);
+						_sendCmd(port);						
+					}
 				}
 			});
 
