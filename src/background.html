@@ -40,11 +40,13 @@
 			fsm.setData(0, "icon", "on",  "reload24-on.png");
 			fsm.setData(0, "icon", "off", "reload24-off.png"); 
 			fsm.setData(0, "icon", "sticky", "reload24-stick.png");
+			fsm.setData(0, "icon", "sticky_stopped", "reload24-stopped.png");
 			fsm.setData(0, "icon", "stopped", "reload24-stopped.png");
 		
 			fsm.setData(0, "title", "off",     "Click to start auto-reload");
 			fsm.setData(0, "title", "on",      "Click to engage sticky auto-reload");
 			fsm.setData(0, "title", "sticky",  "Click to stop auto-reload");
+			fsm.setData(0, "title", "sticky_stopped", "Click to restart auto-reload");
 			fsm.setData(0, "title", "stopped", "Click to restart auto-reload");
 						
 			
@@ -123,9 +125,8 @@
 			/*
 			 *  A 'tab' connects to the background page
 			 */
-			chrome.extension.onConnect.addListener(function(port) {	
-				console.log("> onConnect");			
-				console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
+			chrome.extension.onConnect.addListener(function(port) {				
+				//console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
 						
 		    	var tid    = port.tab.id;
 		    	var url    = port.tab.url;
@@ -134,11 +135,7 @@
 		    	
 		    	fsm.setUrl(tid, url);
 				menuman.update(url);
-				
-				//we just received this 'connect' request so
-				//the port must be ok to use: assume safe.
-				_sendCmd(port);
-				
+				_sendCmd(port);				
 				setIcon(tid);
 			});
 
