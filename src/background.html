@@ -42,16 +42,15 @@
 			fsm.setData(0, "icon", "sticky", "reload24-stick.png");
 			fsm.setData(0, "icon", "stopped", "reload24-stopped.png");
 		
-			fsm.setData(0, "title", "on",      "Click to start auto-reload");
-			fsm.setData(0, "title", "off",     "Click to engage sticky auto-reload");
+			fsm.setData(0, "title", "off",     "Click to start auto-reload");
+			fsm.setData(0, "title", "on",      "Click to engage sticky auto-reload");
 			fsm.setData(0, "title", "sticky",  "Click to stop auto-reload");
 			fsm.setData(0, "title", "stopped", "Click to restart auto-reload");
 						
 			
 			var _sendCmd=function(port) {
-				console.log("> sendCmd");
-				
-				console.log("sendCmd: tid: "+port.tab.id);
+				//console.log("> sendCmd");
+				console.log("> sendCmd: tid: "+port.tab.id);
 				
 				var timeout;
 				var randomize;
@@ -99,17 +98,21 @@
 				// when it finishes loading anyways.
 				try {
 					port.postMessage(cmd);
-				} catch(err) {}				
+					console.log(cmd);
+				} catch(err) {
+					console.error("> sendCmd exception:"+err);
+				}				
 			};
 
 			function setIcon(tid) {
 				var state=fsm.getState(tid);
 				var icon_path=fsm.getData(0, "icon", state);
 				var title=fsm.getData(0, "title", state);
-				console.log("tid:"+tid+"icon_path: "+icon_path);
+				console.log("tid:"+tid+"icon_path: "+icon_path+", title:"+title);
 
 				chrome.pageAction.setIcon({"tabId": tid, "path":icon_path});
-				chrome.pageAction.setTitle({"tabId": tid, "title": title});						
+				chrome.pageAction.setTitle({"tabId": tid, "title": title});				
+				chrome.pageAction.show(tid);		
 			}
 
 			// =============================================================================================
@@ -134,8 +137,7 @@
 				//we just received this 'connect' request so
 				//the port must be ok to use: assume safe.
 				_sendCmd(port);
-
-				chrome.pageAction.show(tid);
+				
 				setIcon(tid);
 			});
 
@@ -145,14 +147,19 @@
 			// If the user navigates to a different location,
 			//  he/she probably don't want to keep re-loading the new target.
 			chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
-
-				console.log("* tab updated: "+tabId);
-				setIcon(tabId);
+				if (changeInfo.status=="loading")
+					return;
+					
 				
 				var urlChanged=changeInfo["url"] || false;
 				if (urlChanged === false)
 					return;
+
+				console.log("* tab updated: "+tabId);
+				console.log(changeInfo);
+				
 				fsm.setUrl(tabId, changeInfo["url"]);
+				setIcon(tabId);
 				
 				var port=ports[tabId] || null;
 				if (port !=null)
