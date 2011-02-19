@@ -7,14 +7,19 @@
 
 	<body>
 		<script>
-			var t=new TabParams();
-			t.setByTidUrl(1, "url1", "key1", "value1");
-			var value1=t.getByTidUrl(1, "url1", "key1");
-			if (value1!="value1")
-				console.error("key1 error!");
+
 			var s;			
 			var tid=1;
 			var f=new FSM();
+
+			f.setData(1, "n1", "k1", "v1");
+			s=f.getData(1, "n1", "k1");
+			if (s!="v1")
+				console.error("expecting 'v1'");
+			s=f.getData(1, "n1", "k2");
+			if (s!=undefined)
+				console.error("expecting 'undefined'");
+
 			// off -> on --> sticky --> off
 			if ((s=f.nextState(tid, false)) !="on")
 				console.error("expected 'on' state, got:"+s);

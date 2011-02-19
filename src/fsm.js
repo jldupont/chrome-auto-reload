@@ -34,7 +34,7 @@ function FSM() {
 }
 
 FSM.method("_update", function(tid){
-	if (this.url[map]==undefined)
+	if (this.url_map[tid]==undefined)
 		return;
 		
 	var sticky_state=localStorage["sticky."+this.url_map[tid]] === "on";
@@ -54,7 +54,7 @@ FSM.method("setData", function(tid, n,k,v){
 	var set=tset[n] || {};
 	set[k]=v;
 	tset[n]=set
-	this.data[n]=tset;
+	this.data[tid]=tset;
 });
 
 /**

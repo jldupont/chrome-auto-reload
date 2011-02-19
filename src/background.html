@@ -20,7 +20,6 @@
 		<script src="oo.js"></script>
 		<script src="menus.js"></script>
 		<script src="params.js"></script>
-		<script src="tabparams.js"></script>
 		<script src="fsm.js"></script>
 		<script>
 			var fsm=new FSM();
@@ -28,7 +27,6 @@
 			
 			var url_params=new UrlManager();
 			var opt_params=new OptionsManager();
-			var tab_params=new TabParams();
 		
 			var menuman=new MenuManager(url_params);
 			menuman.create();
@@ -39,19 +37,22 @@
 			 *  Current session tab parameters
 			 */
 
-			fsm.setData("icon", "on",  "reload24-on.png");
-			fsm.setData("icon", "off", "reload24-off.png"); 
-			fsm.setData("icon", "sticky", "reload24-stick.png");
-			fsm.setData("icon", "stopped", "reload24-stopped.png");
+			fsm.setData(0, "icon", "on",  "reload24-on.png");
+			fsm.setData(0, "icon", "off", "reload24-off.png"); 
+			fsm.setData(0, "icon", "sticky", "reload24-stick.png");
+			fsm.setData(0, "icon", "stopped", "reload24-stopped.png");
 		
-			fsm.setData("title", "on",      "Click to start auto-reload");
-			fsm.setData("title", "off",     "Click to engage sticky auto-reload");
-			fsm.setData("title", "sticky",  "Click to stop auto-reload");
-			fsm.setData("title", "stopped", "Click to restart auto-reload");
+			fsm.setData(0, "title", "on",      "Click to start auto-reload");
+			fsm.setData(0, "title", "off",     "Click to engage sticky auto-reload");
+			fsm.setData(0, "title", "sticky",  "Click to stop auto-reload");
+			fsm.setData(0, "title", "stopped", "Click to restart auto-reload");
 						
 			
 			var _sendCmd=function(port) {
-
+				console.log("> sendCmd");
+				
+				console.log("sendCmd: tid: "+port.tab.id);
+				
 				var timeout;
 				var randomize;
 				
@@ -103,8 +104,9 @@
 
 			function setIcon(tid) {
 				var state=fsm.getState(tid);
-				var icon_path=fsm.getData("icon", state);
-				var title=fsm.getData("title", state);
+				var icon_path=fsm.getData(0, "icon", state);
+				var title=fsm.getData(0, "title", state);
+				console.log("tid:"+tid+"icon_path: "+icon_path);
 
 				chrome.pageAction.setIcon({"tabId": tid, "path":icon_path});
 				chrome.pageAction.setTitle({"tabId": tid, "title": title});						
@@ -117,7 +119,8 @@
 			/*
 			 *  A 'tab' connects to the background page
 			 */
-			chrome.extension.onConnect.addListener(function(port) {				
+			chrome.extension.onConnect.addListener(function(port) {	
+				console.log("> onConnect");			
 				console.log("* Auto-Reload: on-connect, tabId:"+port.tab.id);
 						
 		    	var tid    = port.tab.id;
@@ -144,14 +147,16 @@
 			chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
 
 				console.log("* tab updated: "+tabId);
+				setIcon(tabId);
 				
 				var urlChanged=changeInfo["url"] || false;
 				if (urlChanged === false)
 					return;
 				fsm.setUrl(tabId, changeInfo["url"]);
 				
-				var port=ports[tabId];
-				_sendCmd(port);
+				var port=ports[tabId] || null;
+				if (port !=null)
+					_sendCmd(port);
 			});
 
 		
@@ -177,15 +182,13 @@
 			//  - "content script" with "keydown"
 			//
 			chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-				//console.log(request);
+				console.log("> onRequest");
 
 				//options change, notify all "content scripts"
 				if (request.type=="options_change") {
-					for (var tid in tabParams) {
-						var params=tabParams[tid] || {};
-						var port = params.port || false;
-						if (port != false)
-							//console.log("bg: updating tab<"+tid+">");
+					for (var port in ports) {
+						if (port != undefined)
+							console.log("bg: updating tab<"+tid+">");
 							_sendCmd(port);
 					}	
 				}
