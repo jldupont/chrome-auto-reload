@@ -98,7 +98,7 @@
 				// when it finishes loading anyways.
 				try {
 					port.postMessage(cmd);
-					console.log(cmd);
+					//console.log(cmd);
 				} catch(err) {
 					console.error("> sendCmd exception:"+err);
 				}				
@@ -110,9 +110,10 @@
 				var title=fsm.getData(0, "title", state);
 				console.log("tid:"+tid+"icon_path: "+icon_path+", title:"+title);
 
+				chrome.pageAction.show(tid);
 				chrome.pageAction.setIcon({"tabId": tid, "path":icon_path});
 				chrome.pageAction.setTitle({"tabId": tid, "title": title});				
-				chrome.pageAction.show(tid);		
+		
 			}
 
 			// =============================================================================================
@@ -150,7 +151,6 @@
 				if (changeInfo.status=="loading")
 					return;
 					
-				
 				var urlChanged=changeInfo["url"] || false;
 				if (urlChanged === false)
 					return;
@@ -180,7 +180,8 @@
 				}
 			       
 			    fsm.nextState(tab.id, false);
-			    
+			    setIcon(tab.id);
+				
 				_sendCmd(port);
 			});
 

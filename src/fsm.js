@@ -37,7 +37,7 @@ FSM.method("_update", function(tid){
 	if (this.url_map[tid]==undefined)
 		return;
 		
-	var sticky_state=localStorage["sticky."+this.url_map[tid]] === "on";
+	var sticky_state=localStorage["sticky."+this.url_map[tid]] === "sticky";
 	if (sticky_state)
 		this.state[tid]="sticky";
 });
@@ -82,6 +82,8 @@ FSM.method("nextState", function(tid, stop_event) {
 	var url=this.url_map[tid];
 	var state=this.state[tid] || "off";
 	
+	// if currently "sticky", then 'next'
+	// state is for sure "not sticky"!
 	if (url!=undefined)
 		if (state=="sticky")
 			localStorage["sticky."+url]="not sticky";
