@@ -3,40 +3,28 @@
  *
  *	@author: Jean-Lou Dupont
  *
- 	States:
- 		- OFF
- 		- ON
- 		- ON & Sticky
- 		- STOPPED
- 		- STOPPED & Sticky
- 		
- 	"flow":
- 		OFF ------> ON --> STOPPED
- 		                   STOPPED --> ON
- 		OFF ------> ON --> STICKY  --> STICKY_STOPPED --> STICKY
- 		                           --> OFF
- 		                           
-		OFF (stop) --> OFF
-		STICKY_STOPPED (stop) --> STICKY_STOPPED
  *
  */
 
 function FSM() {
 	this.state={};
 	this.url_map={};
+	
+	// transitions without the "stop" cmd
 	this.map={
 		"off": "on",
 		"on":  "sticky",
 		"sticky": "off",
-		"stopped": "on",
+		"stopped": "on"
 	};
+	// transitions with the "stop" cmd
 	this.smap={
-		"off":     "off",
-		"on":      "stopped",
-		"sticky":  "sticky_stopped",
-		"stopped": "stopped",
-		"sticky_stopped":"sticky_stopped"
-			};
+		"off":     			"off",
+		"on":      			"stopped",
+		"sticky":  			"sticky_stopped",
+		"stopped": 			"stopped",
+		"sticky_stopped":	"sticky_stopped"
+	};
 	
 	this.data={};
 }
@@ -61,7 +49,7 @@ FSM.method("setData", function(tid, n,k,v){
 	var tset=this.data[tid] || {};
 	var set=tset[n] || {};
 	set[k]=v;
-	tset[n]=set
+	tset[n]=set;
 	this.data[tid]=tset;
 });
 
@@ -86,7 +74,7 @@ FSM.method("getState", function(tid){
 });
 
 FSM.method("setUrl", function(tid, url){
-	this.state[tid]="off";
+	//this.state[tid]="off";
 	this.url_map[tid]=url;
 	this._update(tid);
 });
