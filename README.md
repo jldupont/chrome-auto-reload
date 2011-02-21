@@ -3,6 +3,11 @@ Google Chrome "Auto-Reload" extension
 Releases
 ========
 
+7.9.1
+-----
+
+ * filter for keys that won't cause a "stop" 
+
 7.8
 ---
 

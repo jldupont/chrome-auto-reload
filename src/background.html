@@ -22,6 +22,13 @@
 		<script src="params.js"></script>
 		<script src="fsm.js"></script>
 		<script>
+			var filter_keys={"16":true, 	//tab 
+			     			"17":true, 		//ctrl
+			     			"18":true, 		//alt
+			     			"91":true		//windows	
+			     			,"27":true		//escape
+			};
+			
 			var fsm=new FSM();
 			var ports={};
 			
@@ -182,6 +189,11 @@
 				_sendCmd(port);
 			});
 
+			function filterKey(key) {
+				var filter_out=filter_keys[""+key] || false;
+				return filter_out
+			};
+			
 			//Message processing: 
 			//  - "options" page sends a request
 			//  - "content script" with "keydown"
@@ -200,14 +212,17 @@
 				
 				// The 'tab' intercepted a keydown...
 				if (request.type=="keydown") {
-					var tid=sender.tab.id;
-					var port=ports[tid];
-					
-					var changed=fsm.nextState(tid, true);
-					if (changed) {
- 						setIcon(tid);
-						_sendCmd(port);						
-					}
+					if (!filterKey (request.key)) {
+						var tid=sender.tab.id;
+						var port=ports[tid];
+						
+						var changed=fsm.nextState(tid, true);
+						if (changed) {
+	 						setIcon(tid);
+							_sendCmd(port);						
+						}
+					} 
+					//else console.log("! filtered out: "+request.key);
 				}
 			});
 

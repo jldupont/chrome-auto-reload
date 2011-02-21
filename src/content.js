@@ -111,6 +111,6 @@ port.onMessage.addListener(reloader);
 //
 
 document.onkeydown = function keydownHandler(e) {
-	chrome.extension.sendRequest({type: "keydown"}, function(response) {});
-	//console.log(">> sent keydown");
+	chrome.extension.sendRequest({type: "keydown", "key": e.which}, function(response) {});
+	//console.log(">> sent keydown: "+e.which);
 };
