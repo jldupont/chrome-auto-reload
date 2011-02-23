@@ -27,6 +27,19 @@
 			     			"18":true, 		//alt
 			     			"91":true		//windows	
 			     			,"27":true		//escape
+			     			,"112":true		//f1
+			     			,"113":true		//f2
+			     			,"114":true		//f3
+			     			,"115":true		//f4
+			     			,"116":true		//f5
+			     			,"117":true		//f6
+			     			,"118":true		//f7
+			     			,"119":true		//f8
+			     			,"120":true		//f9
+			     			,"121":true		//f10
+			     			,"122":true		//f11
+			     			,"123":true		//f12
+			     			
 			};
 			
 			var fsm=new FSM();
@@ -212,6 +225,7 @@
 				
 				// The 'tab' intercepted a keydown...
 				if (request.type=="keydown") {
+					//console.log("key: "+request.key);
 					if (!filterKey (request.key)) {
 						var tid=sender.tab.id;
 						var port=ports[tid];

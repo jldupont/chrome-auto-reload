@@ -75,6 +75,10 @@ FSM.method("getState", function(tid){
 
 FSM.method("setUrl", function(tid, url){
 	//this.state[tid]="off";
+	var current_url=this.url_map[tid];
+	if (current_url != url) {
+		this.state[tid]="off";
+	}
 	this.url_map[tid]=url;
 	this._update(tid);
 });

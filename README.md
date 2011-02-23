@@ -3,6 +3,13 @@ Google Chrome "Auto-Reload" extension
 Releases
 ========
 
+7.9.2
+-----
+
+ * restored behavior "url based reloading and not tab based"
+ * added function keys "Fn" to "no stop" list
+
+
 7.9.1
 -----
 
