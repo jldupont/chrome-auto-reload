@@ -172,8 +172,8 @@
 				if (urlChanged === false)
 					return;
 
-				console.log("* tab updated: "+tabId);
-				console.log(changeInfo);
+				//console.log("* tab updated: "+tabId);
+				//console.log(changeInfo);
 				
 				fsm.setUrl(tabId, changeInfo["url"]);
 				setIcon(tabId);
@@ -218,7 +218,7 @@
 				if (request.type=="options_change") {
 					for (var port in ports) {
 						if (port != undefined)
-							console.log("bg: updating tab<"+tid+">");
+							//console.log("bg: updating tab<"+tid+">");
 							_sendCmd(port);
 					}	
 				}

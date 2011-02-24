@@ -3,6 +3,11 @@ Google Chrome "Auto-Reload" extension
 Releases
 ========
 
+7.9.3
+-----
+
+ * added chaining for keydown event
+
 7.9.2
 -----
 

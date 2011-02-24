@@ -109,8 +109,8 @@ port.onMessage.addListener(reloader);
 //
 //  Keypress handler
 //
-
-document.onkeydown = function keydownHandler(e) {
+document.addEventListener("keydown", function(e) {
 	chrome.extension.sendRequest({type: "keydown", "key": e.which}, function(response) {});
-	//console.log(">> sent keydown: "+e.which);
-};
+	//console.log("> keydown: "+e.which);
+});
+
